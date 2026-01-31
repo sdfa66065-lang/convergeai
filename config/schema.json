@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Repository Input Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "repository_url",
+    "base_ref",
+    "upstream_remote",
+    "upstream_ref"
+  ],
+  "properties": {
+    "repository_url": {
+      "type": "string",
+      "description": "Git URL for the forked repository to operate on."
+    },
+    "base_ref": {
+      "type": "string",
+      "description": "Base branch or ref to check out before merging."
+    },
+    "upstream_remote": {
+      "type": "string",
+      "description": "Name of the upstream Git remote."
+    },
+    "upstream_ref": {
+      "type": "string",
+      "description": "Upstream branch or ref to merge forward."
+    },
+    "cherry_picks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional list of commit SHAs to cherry-pick after the upstream merge."
+    },
+    "config_path": {
+      "type": "string",
+      "description": "Optional path to a future configuration file."
+    }
+  }
+}
