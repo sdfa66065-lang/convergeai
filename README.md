@@ -1,0 +1,42 @@
+# ConvergeAI Phase 0
+
+## One-sentence system definition
+This system automatically attempts to apply upstream changes to a fork inside a containerized environment using bulk cherry-picks, iterates compile and test runs via modular actions (including integrations with internal services), and produces either a passing result or a replayable failure history.
+
+## Execution Environment Contract
+The system runs entirely inside a container to guarantee determinism and reproducibility.
+
+**Base image**
+- Eclipse Temurin 17 JDK (Jammy)
+
+**Installed tools**
+- Git
+- Bash and coreutils
+
+**Contractual guarantees**
+- Builds and tests must use repository-provided tooling (for example, `./gradlew`).
+- The container does not assume a global Gradle installation.
+
+## Repository input contract
+See `config/schema.json` for the formal schema and the example below for a valid input.
+
+```json
+{
+  "repository_url": "https://github.com/example/forked-repo.git",
+  "base_ref": "main",
+  "upstream_remote": "upstream",
+  "upstream_ref": "main",
+  "cherry_picks": [
+    "a1b2c3d4e5f6g7h8i9j0",
+    "deadbeefcafebabe1234"
+  ],
+  "config_path": "config/overrides.json"
+}
+```
+
+## Phase 0 exit checklist
+- [x] System can be described in one sentence
+- [x] User does not install language tooling
+- [x] Container contract is explicit
+- [x] Control/execution plane separation is documented
+- [x] No AI logic has been implemented yet
