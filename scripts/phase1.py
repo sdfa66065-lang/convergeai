@@ -295,11 +295,6 @@ def main() -> None:
         default="phase1_output.json",
         help="Filename for phase1 JSON output",
     )
-    parser.add_argument(
-        "--upstream-url",
-        default=None,
-        help="Optional upstream remote URL if missing",
-    )
 
     args = parser.parse_args()
 
@@ -308,6 +303,7 @@ def main() -> None:
     base_ref = str(config["base_ref"])
     upstream_remote = str(config["upstream_remote"])
     upstream_ref = str(config["upstream_ref"])
+    upstream_url = config.get("upstream_url")
 
     workspace_root = Path(args.workspace_root).resolve()
     workspace_root.mkdir(parents=True, exist_ok=True)
@@ -318,7 +314,7 @@ def main() -> None:
     clone_repo(repository_url, repo_path, args.clone_depth)
     run_git(repo_path, ["fetch", "--all", "--prune"], check=True)
 
-    ensure_remote(repo_path, upstream_remote, args.upstream_url)
+    ensure_remote(repo_path, upstream_remote, upstream_url)
     fetch_remote(repo_path, upstream_remote)
 
     base_sha = checkout_base(repo_path, base_ref)

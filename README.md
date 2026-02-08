@@ -43,8 +43,7 @@ conflict JSON for Phase 2 consumption.
 python3 scripts/phase1.py \\
   --config path/to/input.json \\
   --workspace-root ./workspaces \\
-  --run-id run-20240101 \\
-  --upstream-url https://github.com/example/upstream-repo.git
+  --run-id run-20240101
 ```
 
 Outputs are written into the workspace directory, including `phase1_output.json` and
