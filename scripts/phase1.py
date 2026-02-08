@@ -111,7 +111,8 @@ def attempt_merge(repo_path: Path, upstream_remote: str, upstream_ref: str) -> M
         head_sha = run_git(repo_path, ["rev-parse", "HEAD"], check=True).stdout.strip()
         return MergeResult("clean", head_sha, [])
     except subprocess.CalledProcessError as error:
-        if "CONFLICT" not in error.stderr and "Automatic merge failed" not in error.stderr:
+        merge_output = f"{error.stdout}\n{error.stderr}"
+        if "CONFLICT" not in merge_output and "Automatic merge failed" not in merge_output:
             raise
         conflicted_files = (
             run_git(repo_path, ["diff", "--name-only", "--diff-filter=U"], check=True)
