@@ -27,6 +27,7 @@ See `config/schema.json` for the formal schema and the example below for a valid
   "upstream_remote": "upstream",
   "upstream_url": "https://github.com/example/upstream-repo.git",
   "upstream_ref": "main",
+  "binary_conflict_policy": "ours",
   "cherry_picks": [
     "a1b2c3d4e5f6g7h8i9j0",
     "deadbeefcafebabe1234"
@@ -48,6 +49,14 @@ python3 scripts/phase1.py \\
 
 Outputs are written into the workspace directory, including `phase1_output.json` and
 `workspace_metadata.json`.
+
+## Phase 2 runner
+Phase 2 consumes the Phase 1 workspace, attempts automated conflict resolution, runs
+compile and test loops, and writes step artifacts into `artifacts/phase2`.
+
+```bash
+python3 scripts/phase2.py --workspace ./workspaces/run-20240101
+```
 
 ## Phase 0 exit checklist
 - [x] System can be described in one sentence
