@@ -61,9 +61,19 @@ python3 scripts/phase2.py --workspace ./workspaces/run-20240101
 ## Hello world demo
 For a minimal end-to-end walkthrough, see `docs/hello_world.md`.
 
-## Phase 0 exit checklist
-- [x] System can be described in one sentence
-- [x] User does not install language tooling
-- [x] Container contract is explicit
-- [x] Control/execution plane separation is documented
-- [x] No AI logic has been implemented yet
+## Repository layout
+- `config/`: JSON schema and default configuration inputs for runs.
+- `docs/`: End-to-end walkthroughs and operator notes.
+- `prompts/`: Prompt templates used by the automation flow.
+- `scripts/`: Phase runners and supporting automation.
+- `Dockerfile`: Container specification for the execution environment.
+
+## Quick start
+1. Create or copy a valid config JSON (see `config/schema.json` and the example above).
+2. Run Phase 1 to prepare the workspace and emit conflict metadata.
+3. Run Phase 2 to resolve conflicts and execute compile/test loops.
+
+```bash
+python3 scripts/phase1.py --config path/to/input.json --workspace-root ./workspaces --run-id run-20240101
+python3 scripts/phase2.py --workspace ./workspaces/run-20240101
+```
