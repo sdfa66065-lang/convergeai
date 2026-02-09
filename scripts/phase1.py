@@ -122,17 +122,12 @@ def attempt_merge(repo_path: Path, upstream_remote: str, upstream_ref: str) -> M
         return MergeResult("conflicted", None, conflicted_files)
 
 
-def scan_for_conflicts(repo_path: Path) -> List[str]:
-    conflicted_files: List[str] = []
-    for path in repo_path.rglob("*"):
-        if not path.is_file() or "/.git/" in str(path):
-            continue
-        with path.open("r", encoding="utf-8", errors="ignore") as handle:
-            for line in handle:
-                if line.startswith(CONFLICT_START):
-                    conflicted_files.append(str(path.relative_to(repo_path)))
-                    break
-    return conflicted_files
+def file_has_conflict_markers(file_path: Path) -> bool:
+    with file_path.open("r", encoding="utf-8", errors="ignore") as handle:
+        for line in handle:
+            if line.startswith(CONFLICT_START):
+                return True
+    return False
 
 
 def parse_conflicts(file_path: Path, context_lines: int) -> List[ConflictHunk]:
@@ -323,15 +318,18 @@ def main() -> None:
 
     merge_result = attempt_merge(repo_path, upstream_remote, upstream_ref)
 
-    conflicted_files = scan_for_conflicts(repo_path)
-    if merge_result.status == "conflicted" and not conflicted_files:
-        raise RuntimeError("Merge reported conflicts but no conflict markers were found.")
-
     conflicts: List[ConflictFile] = []
-    for file_path in conflicted_files:
-        full_path = repo_path / file_path
-        hunks = parse_conflicts(full_path, args.context_lines)
-        conflicts.append(ConflictFile(file_path=file_path, hunks=hunks))
+    if merge_result.status == "conflicted":
+        if not merge_result.conflicted_files:
+            raise RuntimeError("Merge reported conflicts but no conflict markers were found.")
+        for file_path in merge_result.conflicted_files:
+            full_path = repo_path / file_path
+            if not file_has_conflict_markers(full_path):
+                raise RuntimeError(
+                    f"Merge reported conflict in {file_path} but no conflict markers were found."
+                )
+            hunks = parse_conflicts(full_path, args.context_lines)
+            conflicts.append(ConflictFile(file_path=file_path, hunks=hunks))
 
     output_path = workspace_path / args.output
     write_conflict_json(output_path, workspace_info, merge_result, conflicts)
