@@ -58,6 +58,9 @@ compile and test loops, and writes step artifacts into `artifacts/phase2`.
 python3 scripts/phase2.py --workspace ./workspaces/run-20240101
 ```
 
+## Hello world demo
+For a minimal end-to-end walkthrough, see `docs/hello_world.md`.
+
 ## Phase 0 exit checklist
 - [x] System can be described in one sentence
 - [x] User does not install language tooling
