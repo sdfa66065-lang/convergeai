@@ -58,6 +58,15 @@ compile and test loops, and writes step artifacts into `artifacts/phase2`.
 python3 scripts/phase2.py --workspace ./workspaces/run-20240101
 ```
 
+Optional real-agent integration can be enabled with:
+
+```bash
+python3 scripts/phase2.py \
+  --workspace ./workspaces/run-20240101 \
+  --agent-endpoint https://agent.example/v1/resolve \
+  --agent-auth-token $CONVERGE_AGENT_TOKEN
+```
+
 ## Hello world demo
 For a minimal end-to-end walkthrough, see `docs/hello_world.md`.
 

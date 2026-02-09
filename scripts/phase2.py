@@ -3,8 +3,11 @@
 import argparse
 import difflib
 import json
+import os
 import re
 import subprocess
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -46,6 +49,13 @@ class StepResult:
     status: str
     reason: Optional[str] = None
     code: Optional[str] = None
+
+
+@dataclass
+class AgentConfig:
+    endpoint: str
+    timeout: float
+    auth_token: Optional[str] = None
 
 
 @dataclass
@@ -140,6 +150,43 @@ def write_agent_response(step_dir: Path, payload: Dict[str, object]) -> None:
     write_json(step_dir / "agent_response.json", payload)
 
 
+def request_agent(
+    payload: Dict[str, object],
+    agent_config: AgentConfig,
+) -> Optional[Dict[str, object]]:
+    request_body = json.dumps(payload).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if agent_config.auth_token:
+        headers["Authorization"] = f"Bearer {agent_config.auth_token}"
+    request = urllib.request.Request(
+        agent_config.endpoint,
+        data=request_body,
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=agent_config.timeout) as response:
+            response_body = response.read().decode("utf-8")
+    except urllib.error.URLError as error:
+        return {"error": str(error)}
+    try:
+        decoded = json.loads(response_body)
+    except json.JSONDecodeError:
+        return {"error": "agent response was not valid JSON"}
+    if isinstance(decoded, dict):
+        return decoded
+    return {"error": "agent response JSON must be an object"}
+
+
+def write_patch_from_agent(step_dir: Path, response: Dict[str, object]) -> Optional[Path]:
+    patch_text = response.get("patch")
+    if not isinstance(patch_text, str) or not patch_text.strip():
+        return None
+    patch_path = step_dir / "patch.diff"
+    patch_path.write_text(patch_text, encoding="utf-8")
+    return patch_path
+
+
 def extract_context(file_path: Path, line_number: int, radius: int = 4) -> Dict[str, object]:
     if not file_path.exists():
         return {"file": file_path.as_posix(), "line": line_number, "lines": []}
@@ -160,6 +207,7 @@ def apply_conflict_resolution(
     conflict_file: ConflictFile,
     step_dir: Path,
     per_file_budget: int,
+    agent_config: Optional[AgentConfig],
 ) -> StepResult:
     file_path = repo_path / conflict_file.file_path
     if not file_path.exists():
@@ -221,20 +269,36 @@ def apply_conflict_resolution(
             hunk_dir.mkdir(parents=True, exist_ok=True)
             write_agent_request(hunk_dir, request_payload)
 
-            resolved_text, resolved_confidence, reason = resolve_hunk(
-                ConflictHunk(
-                    hunk_id=hunk.hunk_id,
-                    base=base_text,
-                    ours=ours_text,
-                    theirs=theirs_text,
-                    context_before=hunk.context_before,
-                    context_after=hunk.context_after,
-                    confidence=hunk.confidence,
+            resolved_text = None
+            resolved_confidence = None
+            reason = None
+            if agent_config:
+                response = request_agent(request_payload, agent_config)
+                if response is not None:
+                    write_json(hunk_dir / "agent_raw_response.json", response)
+                resolved_text = response.get("resolved_text") if response else None
+                if isinstance(response, dict):
+                    resolved_confidence = response.get("confidence")
+                    reason = response.get("resolution")
+            if not isinstance(resolved_text, str):
+                resolved_text, resolved_confidence, reason = resolve_hunk(
+                    ConflictHunk(
+                        hunk_id=hunk.hunk_id,
+                        base=base_text,
+                        ours=ours_text,
+                        theirs=theirs_text,
+                        context_before=hunk.context_before,
+                        context_after=hunk.context_after,
+                        confidence=hunk.confidence,
+                    )
                 )
-            )
             resolved_lines = resolved_text.split("\n") if resolved_text else []
             new_lines.extend(resolved_lines)
 
+            if resolved_confidence is None:
+                resolved_confidence = 0.4
+            if not isinstance(reason, str):
+                reason = "agent" if agent_config else "default-ours"
             decision = {
                 "file": conflict_file.file_path,
                 "hunk_id": hunk.hunk_id,
@@ -537,6 +601,7 @@ def resolve_conflicts(
     conflict_files: List[ConflictFile],
     artifacts_dir: Path,
     per_file_budget: int,
+    agent_config: Optional[AgentConfig],
 ) -> StepResult:
     step_index = 1
     for conflict_file in conflict_files:
@@ -545,7 +610,13 @@ def resolve_conflicts(
         if any(hunk.is_binary for hunk in conflict_file.hunks):
             result = resolve_binary_conflict(repo_path, conflict_file, step_dir)
         else:
-            result = apply_conflict_resolution(repo_path, conflict_file, step_dir, per_file_budget)
+            result = apply_conflict_resolution(
+                repo_path,
+                conflict_file,
+                step_dir,
+                per_file_budget,
+                agent_config,
+            )
         if result.status != "ok":
             write_step_artifacts(
                 step_dir,
@@ -584,6 +655,7 @@ def compile_loop(
     repo_path: Path,
     artifacts_dir: Path,
     max_iterations: int,
+    agent_config: Optional[AgentConfig],
 ) -> StepResult:
     previous_error_count: Optional[int] = None
     stagnation = 0
@@ -595,6 +667,11 @@ def compile_loop(
         errors = parse_compile_errors(output)
         request_payload = build_compile_agent_input(repo_path, errors)
         write_agent_request(step_dir, request_payload)
+        agent_response = None
+        if agent_config:
+            agent_response = request_agent(request_payload, agent_config)
+            if agent_response is not None:
+                write_agent_response(step_dir, agent_response)
         summary = {
             "status": "ok" if result.returncode == 0 else "failed",
             "returncode": result.returncode,
@@ -620,6 +697,8 @@ def compile_loop(
             return StepResult("failed", "compile errors stagnated", "compile_stagnation")
 
         patch_path = step_dir / "patch.diff"
+        if agent_response:
+            patch_path = write_patch_from_agent(step_dir, agent_response) or patch_path
         if not patch_path.exists():
             patch_path = auto_fix_compile_errors(repo_path, errors, step_dir) or patch_path
         patch_result = apply_agent_patch(repo_path, patch_path)
@@ -643,6 +722,7 @@ def test_loop(
     artifacts_dir: Path,
     max_iterations: int,
     test_task: Optional[str],
+    agent_config: Optional[AgentConfig],
 ) -> StepResult:
     previous_failure_count: Optional[int] = None
     stagnation = 0
@@ -654,6 +734,11 @@ def test_loop(
         failures = parse_test_failures(output)
         request_payload = build_test_agent_input(repo_path, failures)
         write_agent_request(step_dir, request_payload)
+        agent_response = None
+        if agent_config:
+            agent_response = request_agent(request_payload, agent_config)
+            if agent_response is not None:
+                write_agent_response(step_dir, agent_response)
         summary = {
             "status": "ok" if result.returncode == 0 else "failed",
             "returncode": result.returncode,
@@ -679,6 +764,8 @@ def test_loop(
             return StepResult("failed", "test failures stagnated", "test_stagnation")
 
         patch_path = step_dir / "patch.diff"
+        if agent_response:
+            patch_path = write_patch_from_agent(step_dir, agent_response) or patch_path
         patch_result = apply_agent_patch(repo_path, patch_path)
         if patch_result.status != "ok":
             return StepResult("failed", "test fix patch missing", "test_patch_missing")
@@ -729,6 +816,22 @@ def main() -> None:
         default=None,
         help="Optional Gradle test task to run",
     )
+    parser.add_argument(
+        "--agent-endpoint",
+        default=None,
+        help="Optional HTTP endpoint for a real agent integration.",
+    )
+    parser.add_argument(
+        "--agent-timeout",
+        type=float,
+        default=30.0,
+        help="Timeout in seconds for the agent request.",
+    )
+    parser.add_argument(
+        "--agent-auth-token",
+        default=None,
+        help="Optional bearer token for the agent endpoint (falls back to CONVERGE_AGENT_TOKEN).",
+    )
 
     args = parser.parse_args()
 
@@ -736,6 +839,14 @@ def main() -> None:
     metadata = load_workspace_metadata(workspace_path)
     repo_path = Path(metadata["repo_path"]).resolve()
     conflict_output = Path(metadata["conflict_output"]).resolve()
+
+    agent_config = None
+    if args.agent_endpoint:
+        agent_config = AgentConfig(
+            endpoint=args.agent_endpoint,
+            timeout=args.agent_timeout,
+            auth_token=args.agent_auth_token or os.getenv("CONVERGE_AGENT_TOKEN"),
+        )
 
     phase1_payload = load_json(conflict_output)
     conflict_files = parse_conflicts(phase1_payload)
@@ -750,21 +861,34 @@ def main() -> None:
 
     if conflict_files:
         conflict_result = resolve_conflicts(
-            repo_path, conflict_files, artifacts_dir, args.conflict_budget_per_file
+            repo_path,
+            conflict_files,
+            artifacts_dir,
+            args.conflict_budget_per_file,
+            agent_config,
         )
         phase2_summary["conflict_resolution"] = conflict_result.__dict__
         if conflict_result.status != "ok":
             write_json(artifacts_dir / "phase2_summary.json", phase2_summary)
             return
 
-    compile_result = compile_loop(repo_path, artifacts_dir, args.compile_iterations)
+    compile_result = compile_loop(
+        repo_path,
+        artifacts_dir,
+        args.compile_iterations,
+        agent_config,
+    )
     phase2_summary["compile"] = compile_result.__dict__
     if compile_result.status != "ok":
         write_json(artifacts_dir / "phase2_summary.json", phase2_summary)
         return
 
     test_result = test_loop(
-        repo_path, artifacts_dir, args.test_iterations, args.test_task
+        repo_path,
+        artifacts_dir,
+        args.test_iterations,
+        args.test_task,
+        agent_config,
     )
     phase2_summary["tests"] = test_result.__dict__
 

@@ -47,15 +47,20 @@ Expected output artifacts:
 - `artifacts/phase2/` (step logs, structured results, or failure replay inputs)
 
 ## 4) How Phase 2 uses the “agent”
-Phase 2 itself does not call an external agent or API. Instead, it looks for a
-`patch.diff` file in each step directory (for example,
-`./workspaces/hello-world/artifacts/phase2/compile_step_1/patch.diff`). If a patch
-is present, Phase 2 applies it and continues the loop. If no patch is present,
-the loop fails with a “patch missing” reason. This is a placeholder integration
-point where a future agent could write a patch into the step directory before the
-next iteration starts.
+Phase 2 can run in two modes:
 
-Phase 2 also emits structured request/response artifacts for each step to make the
+1. **Offline mode (default).** Phase 2 looks for a `patch.diff` file in each step
+   directory (for example, `./workspaces/hello-world/artifacts/phase2/compile_step_1/patch.diff`).
+   If a patch is present, Phase 2 applies it and continues the loop. If no patch is
+   present, the loop fails with a “patch missing” reason.
+2. **Online mode (optional).** Provide `--agent-endpoint` to call a real agent over
+   HTTP. The agent receives the same JSON payload written to `agent_request.json`
+   and can return a JSON response that includes a `patch` string (a unified diff).
+   Phase 2 writes that patch to `patch.diff` and continues the loop. For conflict
+   hunks, the agent can respond with `resolved_text` (and optional `confidence` or
+   `resolution`) to override the default resolution heuristic.
+
+Phase 2 emits structured request/response artifacts for each step to make the
 agent interface deterministic. For compile/test steps, look for
 `agent_request.json` and `agent_response.json` alongside `patch.diff`. Conflict
 steps additionally create per-hunk subdirectories (for example,
