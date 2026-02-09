@@ -55,6 +55,13 @@ the loop fails with a “patch missing” reason. This is a placeholder integrat
 point where a future agent could write a patch into the step directory before the
 next iteration starts.
 
+Phase 2 also emits structured request/response artifacts for each step to make the
+agent interface deterministic. For compile/test steps, look for
+`agent_request.json` and `agent_response.json` alongside `patch.diff`. Conflict
+steps additionally create per-hunk subdirectories (for example,
+`artifacts/phase2/conflict_step_1/hunk_<id>/`) that capture the request payload and
+decision summary for each conflict hunk.
+
 ## 5) Optional configuration
 No additional configuration is required to run the Phase 2 demo. You can optionally
 specify a Gradle test task with `--test-task` if you want to run something other than
