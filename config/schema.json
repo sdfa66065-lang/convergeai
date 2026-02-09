@@ -22,6 +22,10 @@
       "type": "string",
       "description": "Name of the upstream Git remote."
     },
+    "upstream_url": {
+      "type": "string",
+      "description": "Optional URL used to add the upstream remote when missing."
+    },
     "upstream_ref": {
       "type": "string",
       "description": "Upstream branch or ref to merge forward."

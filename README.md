@@ -25,6 +25,7 @@ See `config/schema.json` for the formal schema and the example below for a valid
   "repository_url": "https://github.com/example/forked-repo.git",
   "base_ref": "main",
   "upstream_remote": "upstream",
+  "upstream_url": "https://github.com/example/upstream-repo.git",
   "upstream_ref": "main",
   "cherry_picks": [
     "a1b2c3d4e5f6g7h8i9j0",
@@ -33,6 +34,20 @@ See `config/schema.json` for the formal schema and the example below for a valid
   "config_path": "config/overrides.json"
 }
 ```
+
+## Phase 1 runner
+Phase 1 creates an isolated workspace, attempts the upstream merge, and emits structured
+conflict JSON for Phase 2 consumption.
+
+```bash
+python3 scripts/phase1.py \\
+  --config path/to/input.json \\
+  --workspace-root ./workspaces \\
+  --run-id run-20240101
+```
+
+Outputs are written into the workspace directory, including `phase1_output.json` and
+`workspace_metadata.json`.
 
 ## Phase 0 exit checklist
 - [x] System can be described in one sentence
