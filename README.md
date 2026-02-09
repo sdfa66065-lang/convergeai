@@ -27,6 +27,7 @@ See `config/schema.json` for the formal schema and the example below for a valid
   "upstream_remote": "upstream",
   "upstream_url": "https://github.com/example/upstream-repo.git",
   "upstream_ref": "main",
+  "binary_conflict_policy": "ours",
   "cherry_picks": [
     "a1b2c3d4e5f6g7h8i9j0",
     "deadbeefcafebabe1234"

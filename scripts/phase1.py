@@ -39,6 +39,8 @@ class ConflictHunk:
     context_before: List[str]
     context_after: List[str]
     confidence: float
+    is_binary: bool = False
+    binary_policy: Optional[str] = None
 
 
 @dataclass
@@ -128,6 +130,13 @@ def file_has_conflict_markers(file_path: Path) -> bool:
             if line.startswith(CONFLICT_START):
                 return True
     return False
+
+
+def determine_binary_policy(config: Dict[str, object]) -> str:
+    policy = config.get("binary_conflict_policy", "skip")
+    if policy not in {"ours", "theirs", "skip"}:
+        raise ValueError(f"Unsupported binary_conflict_policy: {policy}")
+    return str(policy)
 
 
 def parse_conflicts(file_path: Path, context_lines: int) -> List[ConflictHunk]:
@@ -246,6 +255,8 @@ def write_conflict_json(
                             "after": hunk.context_after,
                         },
                         "confidence": hunk.confidence,
+                        "is_binary": hunk.is_binary,
+                        "binary_policy": hunk.binary_policy,
                     }
                     for hunk in conflict.hunks
                 ],
@@ -300,6 +311,7 @@ def main() -> None:
     upstream_remote = str(config["upstream_remote"])
     upstream_ref = str(config["upstream_ref"])
     upstream_url = config.get("upstream_url")
+    binary_policy = determine_binary_policy(config)
 
     workspace_root = Path(args.workspace_root).resolve()
     workspace_root.mkdir(parents=True, exist_ok=True)
@@ -325,10 +337,21 @@ def main() -> None:
         for file_path in merge_result.conflicted_files:
             full_path = repo_path / file_path
             if not file_has_conflict_markers(full_path):
-                raise RuntimeError(
-                    f"Merge reported conflict in {file_path} but no conflict markers were found."
-                )
-            hunks = parse_conflicts(full_path, args.context_lines)
+                hunks = [
+                    ConflictHunk(
+                        hunk_id="binary-1",
+                        base="",
+                        ours="",
+                        theirs="",
+                        context_before=[],
+                        context_after=[],
+                        confidence=0.1,
+                        is_binary=True,
+                        binary_policy=binary_policy,
+                    )
+                ]
+            else:
+                hunks = parse_conflicts(full_path, args.context_lines)
             conflicts.append(ConflictFile(file_path=file_path, hunks=hunks))
 
     output_path = workspace_path / args.output

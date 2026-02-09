@@ -30,6 +30,8 @@ class ConflictHunk:
     context_before: List[str]
     context_after: List[str]
     confidence: float
+    is_binary: bool = False
+    binary_policy: Optional[str] = None
 
 
 @dataclass
@@ -83,6 +85,8 @@ def parse_conflicts(payload: Dict[str, object]) -> List[ConflictFile]:
                     context_before=list(context.get("before", [])),
                     context_after=list(context.get("after", [])),
                     confidence=float(hunk.get("confidence", 0.0)),
+                    is_binary=bool(hunk.get("is_binary", False)),
+                    binary_policy=hunk.get("binary_policy"),
                 )
             )
         conflicts.append(ConflictFile(file_path=str(conflict["file_path"]), hunks=hunks))
@@ -174,6 +178,32 @@ def apply_conflict_resolution(
             index += 1
 
     file_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    return StepResult("ok")
+
+
+def resolve_binary_conflict(
+    repo_path: Path,
+    conflict_file: ConflictFile,
+    step_dir: Path,
+) -> StepResult:
+    policy = conflict_file.hunks[0].binary_policy or "skip"
+    if policy == "skip":
+        return StepResult("failed", "binary conflict policy set to skip")
+    if policy not in {"ours", "theirs"}:
+        return StepResult("failed", f"unsupported binary conflict policy: {policy}")
+    try:
+        run_git(repo_path, ["checkout", f"--{policy}", "--", conflict_file.file_path], check=True)
+        run_git(repo_path, ["add", conflict_file.file_path], check=True)
+    except subprocess.CalledProcessError as error:
+        return StepResult("failed", f"binary conflict checkout failed: {error.stderr.strip()}")
+    decision = {
+        "file": conflict_file.file_path,
+        "resolution": policy,
+        "confidence": conflict_file.hunks[0].confidence,
+        "binary": True,
+    }
+    decision_path = step_dir / f"binary_{conflict_file.file_path.replace('/', '_')}.json"
+    write_json(decision_path, decision)
     return StepResult("ok")
 
 
@@ -283,7 +313,10 @@ def resolve_conflicts(
     for conflict_file in conflict_files:
         step_dir = artifacts_dir / f"conflict_step_{step_index}"
         step_dir.mkdir(parents=True, exist_ok=True)
-        result = apply_conflict_resolution(repo_path, conflict_file, step_dir, per_file_budget)
+        if any(hunk.is_binary for hunk in conflict_file.hunks):
+            result = resolve_binary_conflict(repo_path, conflict_file, step_dir)
+        else:
+            result = apply_conflict_resolution(repo_path, conflict_file, step_dir, per_file_budget)
         if result.status != "ok":
             write_step_artifacts(
                 step_dir,

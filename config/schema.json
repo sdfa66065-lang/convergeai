@@ -40,6 +40,11 @@
     "config_path": {
       "type": "string",
       "description": "Optional path to a future configuration file."
+    },
+    "binary_conflict_policy": {
+      "type": "string",
+      "enum": ["ours", "theirs", "skip"],
+      "description": "Optional policy for binary conflicts without diff3 markers."
     }
   }
 }
