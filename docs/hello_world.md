@@ -109,6 +109,20 @@ python3 scripts/phase2.py \
   --agent-endpoint http://localhost:8000/v1/resolve
 ```
 
+### Example: Mock adapter (local wiring)
+If you just need a lightweight endpoint to validate wiring, use the mock adapter
+script included in this repo. It resolves conflict hunks by choosing `ours` and
+returns an error for compile/test patches (so those steps still require a real
+fixer when they fail).
+
+```bash
+python3 scripts/mock_agent_adapter.py --port 8001
+
+python3 scripts/phase2.py \
+  --workspace ./workspaces/hello-world \
+  --agent-endpoint http://localhost:8001/v1/resolve
+```
+
 Phase 2 emits structured request/response artifacts for each step to make the
 agent interface deterministic. For compile/test steps, look for
 `agent_request.json` and `agent_response.json` alongside `patch.diff`. Conflict
