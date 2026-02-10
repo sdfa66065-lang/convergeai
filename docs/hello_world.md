@@ -47,15 +47,62 @@ Expected output artifacts:
 - `artifacts/phase2/` (step logs, structured results, or failure replay inputs)
 
 ## 4) How Phase 2 uses the “agent”
-Phase 2 itself does not call an external agent or API. Instead, it looks for a
-`patch.diff` file in each step directory (for example,
-`./workspaces/hello-world/artifacts/phase2/compile_step_1/patch.diff`). If a patch
-is present, Phase 2 applies it and continues the loop. If no patch is present,
-the loop fails with a “patch missing” reason. This is a placeholder integration
-point where a future agent could write a patch into the step directory before the
-next iteration starts.
+Phase 2 can run in two modes:
 
-Phase 2 also emits structured request/response artifacts for each step to make the
+1. **Offline mode (default).** Phase 2 looks for a `patch.diff` file in each step
+   directory (for example, `./workspaces/hello-world/artifacts/phase2/compile_step_1/patch.diff`).
+   If a patch is present, Phase 2 applies it and continues the loop. If no patch is
+   present, the loop fails with a “patch missing” reason.
+2. **Online mode (optional).** Provide `--agent-endpoint` to call a real agent over
+   HTTP. The agent receives the same JSON payload written to `agent_request.json`
+   and can return a JSON response that includes a `patch` string (a unified diff).
+   Phase 2 writes that patch to `patch.diff` and continues the loop. For conflict
+   hunks, the agent can respond with `resolved_text` (and optional `confidence` or
+   `resolution`) to override the default resolution heuristic.
+
+### Example: OpenAI adapter (popular hosted model)
+Phase 2 expects a simple HTTP endpoint that accepts the `agent_request.json` payload
+and returns either a `patch` (compile/test loops) or `resolved_text` (conflict hunks).
+Because the OpenAI API is a hosted model API, you’ll typically run a tiny adapter
+service that translates the Phase 2 payload into an OpenAI request and then returns
+the expected JSON shape.
+
+This repo includes a working OpenAI-backed adapter at
+`scripts/openai_agent_adapter.py`.
+
+Run the adapter locally and point Phase 2 at it:
+
+```bash
+pip install fastapi uvicorn openai
+
+export OPENAI_API_KEY=your-key
+export OPENAI_MODEL=gpt-4.1-mini
+python3 scripts/openai_agent_adapter.py --host 0.0.0.0 --port 8000
+
+python3 scripts/phase2.py \
+  --workspace ./workspaces/hello-world \
+  --agent-endpoint http://localhost:8000/v1/resolve
+```
+
+If you prefer a free/popular hosted model, swap the OpenAI client call for another
+provider (for example, OpenRouter or a local inference server) and keep the same
+response shape (`resolved_text`/`patch`).
+
+### Example: Mock adapter (local wiring)
+If you just need a lightweight endpoint to validate wiring, use the mock adapter
+script included in this repo. It resolves conflict hunks by choosing `ours` and
+returns an error for compile/test patches (so those steps still require a real
+fixer when they fail).
+
+```bash
+python3 scripts/mock_agent_adapter.py --port 8001
+
+python3 scripts/phase2.py \
+  --workspace ./workspaces/hello-world \
+  --agent-endpoint http://localhost:8001/v1/resolve
+```
+
+Phase 2 emits structured request/response artifacts for each step to make the
 agent interface deterministic. For compile/test steps, look for
 `agent_request.json` and `agent_response.json` alongside `patch.diff`. Conflict
 steps additionally create per-hunk subdirectories (for example,
