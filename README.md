@@ -80,6 +80,16 @@ For a minimal end-to-end walkthrough, see `docs/hello_world.md`.
 - `scripts/`: Phase runners and supporting automation.
 - `Dockerfile`: Container specification for the execution environment.
 
+## Python dependencies
+Install required Python packages before running scripts:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install -r requirements.txt
+```
+
 ## Quick start
 1. Create or copy a valid config JSON (see `config/schema.json` and the example above).
 2. Run Phase 1 to prepare the workspace and emit conflict metadata.
@@ -89,3 +99,15 @@ For a minimal end-to-end walkthrough, see `docs/hello_world.md`.
 python3 scripts/phase1.py --config path/to/input.json --workspace-root ./workspaces --run-id run-20240101
 python3 scripts/phase2.py --workspace ./workspaces/run-20240101
 ```
+
+
+## Adapter request/response artifacts
+Yes—Phase 2 saves adapter inputs and outputs under `artifacts/phase2/` inside the run workspace.
+For each step, inspect `agent_request.json` and `agent_response.json` to see exact payloads.
+
+If you want deterministic local demos, run `scripts/mock_agent_adapter.py` and set:
+- `MOCK_ADAPTER_RESOLVED_TEXT` for fixed conflict resolution text, or
+- `MOCK_ADAPTER_RESPONSE_FILE` for a full JSON response object.
+
+See `docs/demo_walkthrough.md` for copy/paste commands.
+
