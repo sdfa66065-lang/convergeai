@@ -99,3 +99,15 @@ pip install -r requirements.txt
 python3 scripts/phase1.py --config path/to/input.json --workspace-root ./workspaces --run-id run-20240101
 python3 scripts/phase2.py --workspace ./workspaces/run-20240101
 ```
+
+
+## Adapter request/response artifacts
+Yes—Phase 2 saves adapter inputs and outputs under `artifacts/phase2/` inside the run workspace.
+For each step, inspect `agent_request.json` and `agent_response.json` to see exact payloads.
+
+If you want deterministic local demos, run `scripts/mock_agent_adapter.py` and set:
+- `MOCK_ADAPTER_RESOLVED_TEXT` for fixed conflict resolution text, or
+- `MOCK_ADAPTER_RESPONSE_FILE` for a full JSON response object.
+
+See `docs/demo_walkthrough.md` for copy/paste commands.
+

@@ -199,3 +199,64 @@ Then rerun sections 4-6.
 - Import/module errors:
   - Re-activate venv and reinstall required dependencies.
 
+---
+
+## 11) Where adapter inputs/outputs are saved
+
+Yes—Phase 2 persists adapter payloads so you can inspect exactly what was sent/received.
+
+Inside your workspace (for example `./workspaces/run-20240101/artifacts/phase2/`), look for:
+
+- `conflict_step_<n>/hunk_<id>/agent_request.json`
+- `conflict_step_<n>/hunk_<id>/agent_response.json`
+- `compile_step_<n>/agent_request.json`
+- `compile_step_<n>/agent_response.json`
+- `test_step_<n>/agent_request.json`
+- `test_step_<n>/agent_response.json`
+
+These are ideal for demo narration because they show deterministic interface contracts.
+
+---
+
+## 12) Mock adapter with preset responses
+
+If you want predictable demo behavior, run the mock adapter with a fixed response:
+
+### Option A: preset conflict resolution text
+
+```bash
+export MOCK_ADAPTER_RESOLVED_TEXT="Line 2: merged demo result"
+python3 scripts/mock_agent_adapter.py --port 8001
+```
+
+Then run Phase 2:
+
+```bash
+python3 scripts/phase2.py \
+  --workspace ./workspaces/run-20240101 \
+  --agent-endpoint http://localhost:8001/v1/resolve
+```
+
+### Option B: load full JSON response from file
+
+Create a response file (works for conflict/compile/test prompts):
+
+```bash
+cat > /tmp/mock-response.json <<'EOF'
+{
+  "resolved_text": "Line 2: merged demo result",
+  "confidence": 0.99,
+  "resolution": "demo-preset"
+}
+EOF
+
+export MOCK_ADAPTER_RESPONSE_FILE=/tmp/mock-response.json
+python3 scripts/mock_agent_adapter.py --port 8001
+```
+
+Tip: for compile/test demos, the response file can instead be:
+
+```json
+{ "patch": "<unified diff here>" }
+```
+
