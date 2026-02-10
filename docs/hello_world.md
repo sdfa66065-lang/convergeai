@@ -60,6 +60,55 @@ Phase 2 can run in two modes:
    hunks, the agent can respond with `resolved_text` (and optional `confidence` or
    `resolution`) to override the default resolution heuristic.
 
+### Example: OpenAI adapter (popular hosted model)
+Phase 2 expects a simple HTTP endpoint that accepts the `agent_request.json` payload
+and returns either a `patch` (compile/test loops) or `resolved_text` (conflict hunks).
+Because the OpenAI API is a hosted model API, you’ll typically run a tiny adapter
+service that translates the Phase 2 payload into an OpenAI request and then returns
+the expected JSON shape.
+
+Below is a minimal FastAPI adapter example. It forwards the prompt to OpenAI and
+returns a JSON object with `resolved_text` and a numeric `confidence` value:
+
+```python
+# adapter.py
+import os
+from fastapi import FastAPI
+from openai import OpenAI
+
+app = FastAPI()
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+@app.post("/v1/resolve")
+def resolve(payload: dict) -> dict:
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=(
+            "Resolve this merge conflict hunk.\n"
+            f"BASE:\n{payload.get('base','')}\n"
+            f"OURS:\n{payload.get('ours','')}\n"
+            f"THEIRS:\n{payload.get('theirs','')}\n"
+        ),
+    )
+    text = response.output_text or ""
+    return {"resolved_text": text, "confidence": 0.7, "resolution": "openai"}
+```
+
+If you prefer a free/popular hosted model, swap the OpenAI client call for another
+provider (for example, OpenRouter or a local inference server) and keep the same
+response shape (`resolved_text`/`patch`).
+
+Run the adapter locally and point Phase 2 at it:
+
+```bash
+pip install fastapi uvicorn openai
+uvicorn adapter:app --host 0.0.0.0 --port 8000
+
+python3 scripts/phase2.py \
+  --workspace ./workspaces/hello-world \
+  --agent-endpoint http://localhost:8000/v1/resolve
+```
+
 Phase 2 emits structured request/response artifacts for each step to make the
 agent interface deterministic. For compile/test steps, look for
 `agent_request.json` and `agent_response.json` alongside `patch.diff`. Conflict

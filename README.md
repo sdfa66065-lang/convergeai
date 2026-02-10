@@ -67,6 +67,9 @@ python3 scripts/phase2.py \
   --agent-auth-token $CONVERGE_AGENT_TOKEN
 ```
 
+For an OpenAI-based adapter example, see the “How Phase 2 uses the agent” section in
+`docs/hello_world.md`.
+
 ## Hello world demo
 For a minimal end-to-end walkthrough, see `docs/hello_world.md`.
 
