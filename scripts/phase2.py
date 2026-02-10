@@ -297,6 +297,11 @@ def apply_conflict_resolution(
 
             if resolved_confidence is None:
                 resolved_confidence = 0.4
+            else:
+                try:
+                    resolved_confidence = float(resolved_confidence)
+                except (TypeError, ValueError):
+                    resolved_confidence = 0.4
             if not isinstance(reason, str):
                 reason = "agent" if agent_config else "default-ours"
             decision = {
