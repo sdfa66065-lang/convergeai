@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 class MockAgentHandler(BaseHTTPRequestHandler):
@@ -14,6 +17,11 @@ class MockAgentHandler(BaseHTTPRequestHandler):
             payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
         except json.JSONDecodeError:
             self._send_response(400, {"error": "invalid JSON"})
+            return
+
+        configured = _load_preset_response()
+        if configured is not None:
+            self._send_response(200, configured)
             return
 
         if all(key in payload for key in ("base", "ours", "theirs")):
@@ -39,6 +47,31 @@ class MockAgentHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+
+def _load_preset_response() -> Optional[Dict[str, Any]]:
+    response_file = os.getenv("MOCK_ADAPTER_RESPONSE_FILE", "").strip()
+    if response_file:
+        file_path = Path(response_file)
+        loaded = json.loads(file_path.read_text(encoding="utf-8"))
+        if not isinstance(loaded, dict):
+            raise ValueError("MOCK_ADAPTER_RESPONSE_FILE must contain a JSON object")
+        return loaded
+
+    resolved_text = os.getenv("MOCK_ADAPTER_RESOLVED_TEXT")
+    if resolved_text is not None:
+        confidence = float(os.getenv("MOCK_ADAPTER_CONFIDENCE", "0.5"))
+        return {
+            "resolved_text": resolved_text,
+            "confidence": confidence,
+            "resolution": "mock-preset",
+        }
+
+    patch = os.getenv("MOCK_ADAPTER_PATCH")
+    if patch is not None:
+        return {"patch": patch}
+
+    return None
 
 
 def main() -> None:
