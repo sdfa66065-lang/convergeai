@@ -67,47 +67,26 @@ Because the OpenAI API is a hosted model API, you’ll typically run a tiny adap
 service that translates the Phase 2 payload into an OpenAI request and then returns
 the expected JSON shape.
 
-Below is a minimal FastAPI adapter example. It forwards the prompt to OpenAI and
-returns a JSON object with `resolved_text` and a numeric `confidence` value:
-
-```python
-# adapter.py
-import os
-from fastapi import FastAPI
-from openai import OpenAI
-
-app = FastAPI()
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-
-@app.post("/v1/resolve")
-def resolve(payload: dict) -> dict:
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=(
-            "Resolve this merge conflict hunk.\n"
-            f"BASE:\n{payload.get('base','')}\n"
-            f"OURS:\n{payload.get('ours','')}\n"
-            f"THEIRS:\n{payload.get('theirs','')}\n"
-        ),
-    )
-    text = response.output_text or ""
-    return {"resolved_text": text, "confidence": 0.7, "resolution": "openai"}
-```
-
-If you prefer a free/popular hosted model, swap the OpenAI client call for another
-provider (for example, OpenRouter or a local inference server) and keep the same
-response shape (`resolved_text`/`patch`).
+This repo includes a working OpenAI-backed adapter at
+`scripts/openai_agent_adapter.py`.
 
 Run the adapter locally and point Phase 2 at it:
 
 ```bash
 pip install fastapi uvicorn openai
-uvicorn adapter:app --host 0.0.0.0 --port 8000
+
+export OPENAI_API_KEY=your-key
+export OPENAI_MODEL=gpt-4.1-mini
+python3 scripts/openai_agent_adapter.py --host 0.0.0.0 --port 8000
 
 python3 scripts/phase2.py \
   --workspace ./workspaces/hello-world \
   --agent-endpoint http://localhost:8000/v1/resolve
 ```
+
+If you prefer a free/popular hosted model, swap the OpenAI client call for another
+provider (for example, OpenRouter or a local inference server) and keep the same
+response shape (`resolved_text`/`patch`).
 
 ### Example: Mock adapter (local wiring)
 If you just need a lightweight endpoint to validate wiring, use the mock adapter
