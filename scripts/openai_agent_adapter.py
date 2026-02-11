@@ -75,16 +75,17 @@ def resolve(payload: Dict[str, object]) -> JSONResponse:
                     "resolved_text": response.output_text or "",
                     "confidence": 0.7,
                     "resolution": "openai",
+                    "injected_prompt": prompt,
                 }
             )
         if prompt_path.endswith("compile_fixer.md"):
             prompt = build_compile_prompt(payload)
             response = client.responses.create(model=DEFAULT_MODEL, input=prompt)
-            return JSONResponse({"patch": response.output_text or ""})
+            return JSONResponse({"patch": response.output_text or "", "injected_prompt": prompt})
         if prompt_path.endswith("test_fixer.md"):
             prompt = build_test_prompt(payload)
             response = client.responses.create(model=DEFAULT_MODEL, input=prompt)
-            return JSONResponse({"patch": response.output_text or ""})
+            return JSONResponse({"patch": response.output_text or "", "injected_prompt": prompt})
 
     raise HTTPException(status_code=400, detail="unrecognized prompt_path")
 
