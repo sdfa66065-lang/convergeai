@@ -158,6 +158,12 @@ def write_agent_response(step_dir: Path, payload: Dict[str, object]) -> None:
     write_json(step_dir / "agent_response.json", payload)
 
 
+def write_injected_prompt(step_dir: Path, response: Dict[str, object]) -> None:
+    prompt = response.get("injected_prompt")
+    if isinstance(prompt, str) and prompt:
+        (step_dir / "injected_prompt.txt").write_text(prompt, encoding="utf-8")
+
+
 def request_agent(
     payload: Dict[str, object],
     agent_config: AgentConfig,
@@ -284,6 +290,7 @@ def apply_conflict_resolution(
                 response = request_agent(request_payload, agent_config)
                 if response is not None:
                     write_json(hunk_dir / "agent_raw_response.json", response)
+                    write_injected_prompt(hunk_dir, response)
                 resolved_text = response.get("resolved_text") if response else None
                 if isinstance(response, dict):
                     resolved_confidence = response.get("confidence")
@@ -688,6 +695,7 @@ def compile_loop(
             agent_response = request_agent(request_payload, agent_config)
             if agent_response is not None:
                 write_agent_response(step_dir, agent_response)
+                write_injected_prompt(step_dir, agent_response)
         summary = {
             "status": "ok" if result.returncode == 0 else "failed",
             "returncode": result.returncode,
@@ -758,6 +766,7 @@ def test_loop(
             agent_response = request_agent(request_payload, agent_config)
             if agent_response is not None:
                 write_agent_response(step_dir, agent_response)
+                write_injected_prompt(step_dir, agent_response)
         summary = {
             "status": "ok" if result.returncode == 0 else "failed",
             "returncode": result.returncode,
