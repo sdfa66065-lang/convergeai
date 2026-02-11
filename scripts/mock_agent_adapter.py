@@ -37,11 +37,28 @@ class MockAgentHandler(BaseHTTPRequestHandler):
                 "resolved_text": payload.get("ours", ""),
                 "confidence": 0.5,
                 "resolution": "mock",
+                "reasoning": "Mock adapter defaults to OURS for conflict payloads.",
+                "user_intervention": {
+                    "recommended": False,
+                    "reason": "mock_default_keep_ours",
+                    "suggested_actions": [
+                        "Swap to openai_agent_adapter.py for semantic merge reasoning",
+                    ],
+                },
             }
         else:
             response = {
                 "error": "mock adapter does not generate patches",
                 "patch": "",
+                "reasoning": "No patch strategy is implemented in mock mode.",
+                "user_intervention": {
+                    "recommended": True,
+                    "reason": "mock_no_patch_support",
+                    "suggested_actions": [
+                        "Use OPENAI adapter for patch generation",
+                        "Provide MOCK_ADAPTER_PATCH for deterministic patch demos",
+                    ],
+                },
             }
         self._send_response(200, response)
 
@@ -80,11 +97,25 @@ def _load_preset_response() -> Optional[Dict[str, Any]]:
             "resolved_text": resolved_text,
             "confidence": confidence,
             "resolution": "mock-preset",
+            "reasoning": "Preset response injected through MOCK_ADAPTER_RESOLVED_TEXT.",
+            "user_intervention": {
+                "recommended": False,
+                "reason": "preset_response",
+                "suggested_actions": [],
+            },
         }
 
     patch = os.getenv("MOCK_ADAPTER_PATCH")
     if patch is not None:
-        return {"patch": patch}
+        return {
+            "patch": patch,
+            "reasoning": "Preset patch injected through MOCK_ADAPTER_PATCH.",
+            "user_intervention": {
+                "recommended": False,
+                "reason": "preset_patch",
+                "suggested_actions": [],
+            },
+        }
 
     return None
 

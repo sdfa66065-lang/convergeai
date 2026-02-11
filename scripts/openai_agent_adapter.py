@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import os
-from typing import Dict, List
+from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -44,6 +44,54 @@ def build_test_prompt(payload: Dict[str, object]) -> str:
     )
 
 
+def build_intervention_metadata(payload: Dict[str, object], response_text: str, mode: str) -> Dict[str, Any]:
+    resolved_text = response_text.strip()
+    ours = str(payload.get("ours", "")).strip()
+    theirs = str(payload.get("theirs", "")).strip()
+
+    if mode == "conflict" and not resolved_text:
+        return {
+            "reasoning": "Model returned an empty conflict resolution; user review is required.",
+            "user_intervention": {
+                "recommended": True,
+                "reason": "empty_resolution",
+                "suggested_actions": [
+                    "Provide a manual hunk resolution in resolved_text",
+                    "Re-run with additional domain context",
+                ],
+            },
+        }
+
+    if mode == "conflict" and resolved_text == ours and ours and theirs and ours != theirs:
+        return {
+            "reasoning": (
+                "Kept OURS because it likely represents downstream customization. "
+                "If commit history shows this line previously matched upstream, preserving OURS "
+                "is still safer for tenant-specific behavior."
+            ),
+            "user_intervention": {
+                "recommended": False,
+                "reason": "preserve_downstream_customization",
+                "suggested_actions": [
+                    "Optionally verify historical equivalence with git blame/log",
+                ],
+            },
+        }
+
+    return {
+        "reasoning": (
+            "Selected a model-generated resolution based on base/ours/theirs context and nearby lines."
+            if mode == "conflict"
+            else "Generated a patch from model output based on provided diagnostics and file context."
+        ),
+        "user_intervention": {
+            "recommended": False,
+            "reason": "not_required",
+            "suggested_actions": [],
+        },
+    }
+
+
 def _format_json(value: object) -> str:
     import json
 
@@ -70,22 +118,44 @@ def resolve(payload: Dict[str, object]) -> JSONResponse:
         if prompt_path.endswith("conflict_resolver.md"):
             prompt = build_conflict_prompt(payload)
             response = client.responses.create(model=DEFAULT_MODEL, input=prompt)
+            resolved_text = response.output_text or ""
+            meta = build_intervention_metadata(payload, resolved_text, mode="conflict")
             return JSONResponse(
                 {
-                    "resolved_text": response.output_text or "",
+                    "resolved_text": resolved_text,
                     "confidence": 0.7,
                     "resolution": "openai",
+                    "reasoning": meta["reasoning"],
+                    "user_intervention": meta["user_intervention"],
                     "injected_prompt": prompt,
                 }
             )
         if prompt_path.endswith("compile_fixer.md"):
             prompt = build_compile_prompt(payload)
             response = client.responses.create(model=DEFAULT_MODEL, input=prompt)
-            return JSONResponse({"patch": response.output_text or "", "injected_prompt": prompt})
+            patch = response.output_text or ""
+            meta = build_intervention_metadata(payload, patch, mode="compile")
+            return JSONResponse(
+                {
+                    "patch": patch,
+                    "reasoning": meta["reasoning"],
+                    "user_intervention": meta["user_intervention"],
+                    "injected_prompt": prompt,
+                }
+            )
         if prompt_path.endswith("test_fixer.md"):
             prompt = build_test_prompt(payload)
             response = client.responses.create(model=DEFAULT_MODEL, input=prompt)
-            return JSONResponse({"patch": response.output_text or "", "injected_prompt": prompt})
+            patch = response.output_text or ""
+            meta = build_intervention_metadata(payload, patch, mode="test")
+            return JSONResponse(
+                {
+                    "patch": patch,
+                    "reasoning": meta["reasoning"],
+                    "user_intervention": meta["user_intervention"],
+                    "injected_prompt": prompt,
+                }
+            )
 
     raise HTTPException(status_code=400, detail="unrecognized prompt_path")
 

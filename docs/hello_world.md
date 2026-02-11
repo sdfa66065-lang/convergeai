@@ -57,8 +57,9 @@ Phase 2 can run in two modes:
    HTTP. The agent receives the same JSON payload written to `agent_request.json`
    and can return a JSON response that includes a `patch` string (a unified diff).
    Phase 2 writes that patch to `patch.diff` and continues the loop. For conflict
-   hunks, the agent can respond with `resolved_text` (and optional `confidence` or
-   `resolution`) to override the default resolution heuristic.
+   hunks, the agent can respond with `resolved_text` (and optional `confidence`,
+   `resolution`, `reasoning`, or `user_intervention`) to override the default
+   resolution heuristic while preserving review metadata for future workflows.
 
 ### Example: OpenAI adapter (popular hosted model)
 Phase 2 expects a simple HTTP endpoint that accepts the `agent_request.json` payload

@@ -71,7 +71,51 @@ For an OpenAI-based adapter example, see the “How Phase 2 uses the agent” se
 `docs/hello_world.md`.
 
 ## Hello world demo
-For a minimal end-to-end walkthrough, see `docs/hello_world.md`.
+For a minimal end-to-end walkthrough, follow the quick steps below (full details in
+`docs/hello_world.md`).
+
+1. Create an input config file for the run:
+
+   ```bash
+   cat > config/hello_world.json <<'EOF'
+   {
+     "repository_url": "https://github.com/example/forked-repo.git",
+     "base_ref": "main",
+     "upstream_remote": "upstream",
+     "upstream_url": "https://github.com/example/upstream-repo.git",
+     "upstream_ref": "main",
+     "binary_conflict_policy": "ours",
+     "cherry_picks": ["a1b2c3d4e5f6g7h8i9j0"]
+   }
+   EOF
+   ```
+
+2. Run Phase 1 to create the isolated workspace and conflict metadata:
+
+   ```bash
+   python3 scripts/phase1.py \
+     --config config/hello_world.json \
+     --workspace-root ./workspaces \
+     --run-id hello-world
+   ```
+
+3. Run Phase 2 using the Phase 1 workspace:
+
+   ```bash
+   python3 scripts/phase2.py --workspace ./workspaces/hello-world
+   ```
+
+4. Inspect output artifacts:
+
+   ```bash
+   ls -la ./workspaces/hello-world
+   ls -la ./workspaces/hello-world/artifacts/phase2
+   ```
+
+Need adapter examples or a local conflict simulation demo?
+See:
+- `docs/hello_world.md` for OpenAI + mock adapter wiring.
+- `docs/demo_walkthrough.md` for a complete local conflict demo.
 
 ## Repository layout
 - `config/`: JSON schema and default configuration inputs for runs.
@@ -110,4 +154,3 @@ If you want deterministic local demos, run `scripts/mock_agent_adapter.py` and s
 - `MOCK_ADAPTER_RESPONSE_FILE` for a full JSON response object.
 
 See `docs/demo_walkthrough.md` for copy/paste commands.
-
