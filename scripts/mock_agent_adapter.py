@@ -19,7 +19,15 @@ class MockAgentHandler(BaseHTTPRequestHandler):
             self._send_response(400, {"error": "invalid JSON"})
             return
 
-        configured = _load_preset_response()
+        try:
+            configured = _load_preset_response()
+        except ValueError as error:
+            self._send_response(400, {"error": str(error)})
+            return
+        except OSError as error:
+            self._send_response(500, {"error": f"failed to load preset response: {error}"})
+            return
+
         if configured is not None:
             self._send_response(200, configured)
             return
@@ -60,7 +68,14 @@ def _load_preset_response() -> Optional[Dict[str, Any]]:
 
     resolved_text = os.getenv("MOCK_ADAPTER_RESOLVED_TEXT")
     if resolved_text is not None:
-        confidence = float(os.getenv("MOCK_ADAPTER_CONFIDENCE", "0.5"))
+        raw_confidence = os.getenv("MOCK_ADAPTER_CONFIDENCE", "0.5")
+        try:
+            confidence = float(raw_confidence)
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                "MOCK_ADAPTER_CONFIDENCE must be a numeric value when "
+                "MOCK_ADAPTER_RESOLVED_TEXT is set"
+            ) from error
         return {
             "resolved_text": resolved_text,
             "confidence": confidence,

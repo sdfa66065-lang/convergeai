@@ -65,14 +65,22 @@ class DiffStats:
 
 
 def run_cmd(args: List[str], cwd: Path, check: bool = True) -> subprocess.CompletedProcess:
-    return subprocess.run(
-        args,
-        cwd=str(cwd),
-        check=check,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+    try:
+        return subprocess.run(
+            args,
+            cwd=str(cwd),
+            check=check,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except FileNotFoundError as error:
+        return subprocess.CompletedProcess(
+            args=args,
+            returncode=127,
+            stdout="",
+            stderr=str(error),
+        )
 
 
 def run_git(repo_path: Path, args: List[str], check: bool = True) -> subprocess.CompletedProcess:
@@ -662,6 +670,9 @@ def compile_loop(
     max_iterations: int,
     agent_config: Optional[AgentConfig],
 ) -> StepResult:
+    if max_iterations <= 0:
+        return StepResult("ok", "compile step skipped", "compile_skipped")
+
     previous_error_count: Optional[int] = None
     stagnation = 0
     for iteration in range(1, max_iterations + 1):
@@ -729,6 +740,9 @@ def test_loop(
     test_task: Optional[str],
     agent_config: Optional[AgentConfig],
 ) -> StepResult:
+    if max_iterations <= 0:
+        return StepResult("ok", "test step skipped", "test_skipped")
+
     previous_failure_count: Optional[int] = None
     stagnation = 0
     for iteration in range(1, max_iterations + 1):
@@ -810,11 +824,13 @@ def main() -> None:
         "--compile-iterations",
         type=int,
         default=DEFAULT_COMPILE_ITERATIONS,
+        help="Set to 0 to skip compile validation.",
     )
     parser.add_argument(
         "--test-iterations",
         type=int,
         default=DEFAULT_TEST_ITERATIONS,
+        help="Set to 0 to skip test validation.",
     )
     parser.add_argument(
         "--test-task",
