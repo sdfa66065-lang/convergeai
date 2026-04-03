@@ -60,10 +60,19 @@ class PullRequest:
 
 
 @dataclass
+class Commit:
+    repo: str
+    sha: str
+    message: str
+    author: str
+
+
+@dataclass
 class DistilledContext:
     analysis: str                    # full plaintext LLM output
     jira_key: Optional[str] = None
     pr_ref: Optional[str] = None
+    commit_ref: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +170,27 @@ async def fetch_pull_request(repo: str, pr_number: int) -> PullRequest:
     )
 
 
+async def fetch_commit(repo: str, commit_sha: str) -> Commit:
+    """Fetch a GitHub commit by SHA. repo format: owner/repo"""
+    headers = {"Accept": "application/vnd.github+json"}
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+
+    url = f"https://api.github.com/repos/{repo}/commits/{commit_sha}"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, headers=headers)
+        resp.raise_for_status()
+        data = resp.json()
+
+    return Commit(
+        repo=repo,
+        sha=data["sha"],
+        message=data.get("commit", {}).get("message", ""),
+        author=data.get("author", {}).get("login", "")
+               or data.get("commit", {}).get("author", {}).get("name", ""),
+    )
+
+
 # ---------------------------------------------------------------------------
 # LLM distillation
 # ---------------------------------------------------------------------------
@@ -172,7 +202,7 @@ You MUST return your analysis using the exact Markdown template provided. Be ext
 """
 
 DISTILL_USER_TEMPLATE = """\
-## Upstream PR Context
+## Cherrypick Context
 {pr_context}
 
 ## Internal Ticket Constraints
@@ -208,6 +238,7 @@ Produce your analysis using EXACTLY the following Markdown structure. Do not out
 async def distill_context(
     pr_info: Optional[PullRequest],
     jira_info: Optional[JiraTicket],
+    commit_info: Optional[Commit] = None,
     conflicted_files: list[str] | None = None,
 ) -> DistilledContext:
     """Use a fast LLM to distill PR + Jira context into actionable merge guidance."""
@@ -222,6 +253,12 @@ async def distill_context(
             f"Labels: {', '.join(pr_info.labels) or 'none'}\n\n"
             f"{pr_info.body}\n\n"
             f"Changed files: {', '.join(pr_info.changed_files[:20])}"
+        )
+    elif commit_info:
+        pr_context = (
+            f"**Commit {commit_info.sha[:10]}** in {commit_info.repo}\n"
+            f"Author: {commit_info.author}\n\n"
+            f"{commit_info.message}"
         )
 
     jira_context = "No Jira ticket provided."
@@ -257,6 +294,7 @@ async def distill_context(
         analysis=raw_text,
         jira_key=jira_info.key if jira_info else None,
         pr_ref=f"{pr_info.repo}#{pr_info.pr_number}" if pr_info else None,
+        commit_ref=f"{commit_info.repo}@{commit_info.sha[:10]}" if commit_info else None,
     )
 
 
@@ -274,11 +312,12 @@ async def list_tools() -> list[Tool]:
             name="distill_context",
             description=(
                 "Single entry point for context distillation. Provide a Jira ticket "
-                "key and/or a GitHub PR reference (repo + pr_number). Internally "
-                "fetches from Jira and GitHub APIs, then uses a fast LLM to produce "
-                "structured plaintext merge-conflict guidance with semantic anchors: "
-                "[INTENT], [MANDATORY_CONSTRAINTS], [CONFLICT_GUIDANCE], "
-                "[RISK_ASSESSMENT], and [RECOMMENDED_STRATEGY]."
+                "key and/or a GitHub PR reference (repo + pr_number) or a commit "
+                "SHA (repo + commit_sha). Internally fetches from Jira and GitHub "
+                "APIs, then uses a fast LLM to produce structured plaintext "
+                "merge-conflict guidance with semantic anchors: [INTENT], "
+                "[MANDATORY_CONSTRAINTS], [CONFLICT_GUIDANCE], [RISK_ASSESSMENT], "
+                "and [RECOMMENDED_STRATEGY]."
             ),
             inputSchema={
                 "type": "object",
@@ -294,6 +333,13 @@ async def list_tools() -> list[Tool]:
                     "pr_number": {
                         "type": "integer",
                         "description": "Pull request number. Required if repo is provided.",
+                    },
+                    "commit_sha": {
+                        "type": "string",
+                        "description": (
+                            "Git commit SHA. Use with repo as an alternative to "
+                            "repo+pr_number for upstream context."
+                        ),
                     },
                     "conflicted_files": {
                         "type": "array",
@@ -313,10 +359,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             # Fetch sources as needed
             jira_info = None
             pr_info = None
+            commit_info = None
 
             ticket_id = arguments.get("ticket_id")
             repo = arguments.get("repo")
             pr_number = arguments.get("pr_number")
+            commit_sha = arguments.get("commit_sha")
             conflicted_files = arguments.get("conflicted_files", [])
 
             if ticket_id:
@@ -324,25 +372,31 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             else:
                 logger.warning("No ticket_id provided — distilling without internal constraints")
 
-            if repo and not pr_number:
-                logger.warning("repo=%s provided without pr_number — skipping upstream PR fetch", repo)
+            if repo and pr_number:
+                pr_info = await fetch_pull_request(repo, pr_number)
+            elif repo and commit_sha:
+                commit_info = await fetch_commit(repo, commit_sha)
             elif pr_number and not repo:
                 logger.warning("pr_number=%s provided without repo — skipping upstream PR fetch", pr_number)
-            elif repo and pr_number:
-                pr_info = await fetch_pull_request(repo, pr_number)
+            elif commit_sha and not repo:
+                logger.warning("commit_sha=%s provided without repo — skipping commit fetch", commit_sha)
+            elif repo and not pr_number and not commit_sha:
+                logger.warning("repo=%s provided without pr_number or commit_sha — skipping upstream fetch", repo)
 
-            if not jira_info and not pr_info:
+            if not jira_info and not pr_info and not commit_info:
                 return [TextContent(
                     type="text",
-                    text="Error: Provide at least a ticket_id or repo+pr_number.",
+                    text="Error: Provide at least a ticket_id, repo+pr_number, or repo+commit_sha.",
                 )]
 
-            result = await distill_context(pr_info, jira_info, conflicted_files)
+            result = await distill_context(pr_info, jira_info, commit_info, conflicted_files)
             output = result.analysis
             if result.jira_key:
                 output += f"\n\n---\nJira: {result.jira_key}"
             if result.pr_ref:
                 output += f"\nPR: {result.pr_ref}"
+            if result.commit_ref:
+                output += f"\nCommit: {result.commit_ref}"
             return [TextContent(type="text", text=output)]
 
         else:
