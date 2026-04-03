@@ -183,7 +183,7 @@ DISTILL_USER_TEMPLATE = """\
 
 ---
 
-Produce your analysis using EXACTLY the following Markdown structure. Do not output JSON or code fences.
+Produce your analysis using EXACTLY the following Markdown structure. Do not output JSON or code fences. 
 
 ### [SOURCE]: Upstream vs. Internal Fork
 **[INTENT]**
