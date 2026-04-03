@@ -24,20 +24,33 @@ instructions: |
 
   ## Workflow
 
-  1. **Understand the upstream.**
-     Call `get_upstream_intent` with the repo path and upstream ref.
-     This tells you WHAT the upstream changed and WHY.
+  1. **Gather context.**
+     Call `distill_context` with the relevant parameters:
+       - `ticket_id` — Jira ticket key (e.g. PROJ-101)
+       - `repo` — GitHub repo in owner/repo format
+       - `pr_number` — the upstream pull request number
+       - `conflicted_files` — list of file paths with merge conflicts
+     The tool fetches from Jira and GitHub, then uses a fast LLM to
+     produce structured plaintext guidance.
 
-  2. **Understand the fork's constraints.**
-     Call `get_internal_constraints` with the relevant ticket ID(s).
-     These are non-negotiable business rules you MUST preserve.
+  2. **Parse the guidance.**
+     The response contains semantic anchors you must follow:
+       - **[INTENT]** — what the upstream change is trying to achieve.
+       - **[MANDATORY_CONSTRAINTS]** — non-negotiable business rules
+         from the internal ticket you MUST preserve.
+       - **[CONFLICT_GUIDANCE]** — specific instructions on how to
+         blend the upstream architecture with internal constraints.
+       - **[RISK_ASSESSMENT]** — what could go wrong silently.
+       - **[RECOMMENDED_STRATEGY]** — one of BLEND, ACCEPT_UPSTREAM,
+         KEEP_OURS, or MANUAL_REVIEW.
 
   3. **Resolve each conflict file.**
      For every file with conflict markers:
        a. Read the file to see the <<<<<<< / ======= / >>>>>>> blocks.
        b. Write a merged version that:
           - Adopts the upstream's new architecture/patterns
-          - Preserves ALL hard constraints from step 2
+          - Preserves ALL hard constraints from [MANDATORY_CONSTRAINTS]
+          - Follows the [CONFLICT_GUIDANCE] and [RECOMMENDED_STRATEGY]
           - Maps column renames / API renames correctly
           - Keeps the fork's custom code (tenant isolation, audit, etc.)
        c. Write the resolved file (no conflict markers remaining).
@@ -61,6 +74,10 @@ mcpServers:
   context-distiller:
     command: python3
     args:
-      - "${CONVERGEAI_ROOT}/demo/context-distiller-mcp/server.py"
+      - "${CONVERGEAI_ROOT}/mcp/context_distiller/server.py"
     env:
-      TICKET_STORE_PATH: "${CONVERGEAI_ROOT}/demo/rebase-trap/tickets"
+      JIRA_BASE_URL: "${JIRA_BASE_URL}"
+      JIRA_EMAIL: "${JIRA_EMAIL}"
+      JIRA_API_TOKEN: "${JIRA_API_TOKEN}"
+      GITHUB_TOKEN: "${GITHUB_TOKEN}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
