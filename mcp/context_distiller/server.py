@@ -246,7 +246,7 @@ async def distill_context(
     client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
     response = await client.messages.create(
         model=DISTILL_MODEL,
-        max_tokens=1024,
+        max_tokens=4095,
         system=DISTILL_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_msg}],
     )
