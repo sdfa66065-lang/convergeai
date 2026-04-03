@@ -31,12 +31,12 @@ ConvergeAI acts as an autonomous maintainer that:
 ┌─────────────────────────────────────────────────────┐
 │                   CLI Orchestrator                   │
 │              (composes Goose as engine)              │
-├─────────────┬───────────────────────┬───────────────┤
-│  Upstream   │   Context Distiller   │   Internal    │
-│  Intent     │       MCP Server      │   Constraint  │
-│  (PR/commit │   (LLM-in-the-middle) │   (ticket     │
-│   analysis) │                       │    lookup)    │
-├─────────────┴───────────────────────┴───────────────┤
+├─────────────────────────────────────────────────────┤
+│            Context Distiller MCP Server              │
+│     (single distill_context tool — fetches both     │
+│      upstream PR intent & internal constraints,      │
+│      then LLM-distills into structured guidance)     │
+├─────────────────────────────────────────────────────┤
 │               Conflict Resolution Agent             │
 │         (semantic merge + self-correction)           │
 ├─────────────────────────────────────────────────────┤
@@ -50,11 +50,7 @@ ConvergeAI acts as an autonomous maintainer that:
 
 - **Goose as the engine** — We compose [Goose](https://github.com/block/goose) via a CLI wrapper rather than forking it, leveraging its native `bash` and file-editing tools while avoiding maintenance nightmares.
 
-- **Context Distiller MCP (LLM-in-the-Middle)** — An MCP server intercepts context requests and uses a fast LLM to produce strict, bulleted business constraints (e.g., *"Must use PostgreSQL, no Redis"*). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.
-
-- **Dual Distillation** — For each conflict, the engine fetches both:
-  - **Upstream Intent** — What the open-source PR/commit was trying to achieve
-  - **Internal Constraint** — What business rules from local tickets (e.g., `PROJ-101`) must be preserved
+- **Context Distiller MCP (LLM-in-the-Middle)** — A single `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira, then uses a fast LLM (Claude Haiku) to produce structured plaintext guidance with semantic anchors (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.
 
 - **AST-first code navigation** — Tree-sitter / `ast-grep` for structural, context-aware search-and-replace. This handles repository-wide API signature changes without booting a language server on broken mid-rebase code.
 
@@ -69,15 +65,22 @@ git rebase upstream/main
    ┌─ CONFLICT ──┐
    │              │
    ▼              ▼
-Fetch upstream   Fetch internal
-PR intent        ticket constraints
-   │              │
-   └──────┬───────┘
+   distill_context(
+     ticket_id, repo,
+     pr_number,
+     conflicted_files
+   )
+          │
+          ▼
+   Structured guidance
+   ([INTENT], [MANDATORY_CONSTRAINTS],
+    [CONFLICT_GUIDANCE], [RISK_ASSESSMENT],
+    [RECOMMENDED_STRATEGY])
+          │
           ▼
    Semantic merge
    (AI agent resolves
-    conflict with full
-    context of both sides)
+    conflict using guidance)
           │
           ▼
    Run compiler + tests
@@ -97,7 +100,7 @@ PR intent        ticket constraints
 
 - Python 3.10+
 - Git
-- Docker (for containerized runs)
+- [Goose](https://github.com/block/goose) (AI agent engine)
 
 ### Installation
 
@@ -106,26 +109,31 @@ git clone https://github.com/sdfa66065-lang/convergeai.git
 cd convergeai
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r demo/requirements.txt
+pip install -r mcp/context_distiller/requirements.txt
 ```
 
-### Run the Demo
+### Configure Environment
+
+Copy the example env file and fill in your credentials:
 
 ```bash
-# Phase 1: Set up workspace, attempt merge, emit conflict metadata
-python3 demo/scripts/phase1.py \
-  --config demo/config/hello_world.json \
-  --workspace-root ./workspaces \
-  --run-id demo-run
-
-# Phase 2: AI-powered conflict resolution + validation loop
-python3 demo/scripts/phase2.py --workspace ./workspaces/demo-run
-
-# Inspect results
-ls ./workspaces/demo-run/artifacts/phase2/
+cp mcp/context_distiller/.env.example .env
+# Edit .env with your JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN,
+# GITHUB_TOKEN, and ANTHROPIC_API_KEY
 ```
 
-See [`demo/docs/hello_world.md`](demo/docs/hello_world.md) for a full walkthrough and [`demo/docs/demo_walkthrough.md`](demo/docs/demo_walkthrough.md) for a local conflict simulation.
+### Run with Goose
+
+```bash
+export CONVERGEAI_ROOT=$(pwd)
+goose session start --profile ai-maintainer
+```
+
+Or run headless with a prompt file:
+
+```bash
+goose run --profile ai-maintainer --instructions "$(cat prompt.md)"
+```
 
 ---
 
@@ -133,14 +141,15 @@ See [`demo/docs/hello_world.md`](demo/docs/hello_world.md) for a full walkthroug
 
 ```
 convergeai/
-├── demo/
-│   ├── config/          # JSON schema and run configurations
-│   ├── docs/            # Walkthroughs and operator guides
-│   ├── prompts/         # Prompt templates for the AI agent
-│   ├── scripts/         # Phase runners and automation
-│   ├── Dockerfile       # Containerized execution environment
-│   └── requirements.txt
-└── README.md
+├── goose/
+│   └── ai-maintainer.yaml   # Goose profile for the AI Maintainer agent
+├── mcp/
+│   └── context_distiller/
+│       ├── server.py         # Context Distiller MCP server (stdio)
+│       ├── requirements.txt  # Python dependencies
+│       └── .env.example      # Environment variable template
+├── README.md
+└── LICENSE
 ```
 
 ---
@@ -148,12 +157,11 @@ convergeai/
 ## Roadmap
 
 - [x] Phase 0 — Single-file context distiller workflow
-- [ ] Phase 1 — Multi-file orchestration
-- [x] Phase 2([Supported by Goose](https://block.github.io/goose/docs/guides/recipes/session-recipes/)) — Validation loop (compile/test + self-correction) 
+- [x] Phase 1 — Unified `distill_context` MCP tool (Jira + GitHub + LLM distillation)
+- [x] Phase 2 ([Supported by Goose](https://block.github.io/goose/docs/guides/recipes/session-recipes/)) — Validation loop (compile/test + self-correction)
 - [ ] Phase 3 — Blast radius analysis with `ast-grep`
 - [ ] Phase 4 — LSP-based pre-flight dependency mapping
 - [ ] Enterprise integrations (Jira, Linear, GitHub Enterprise)
-- [ ] 
 
 ---
 
