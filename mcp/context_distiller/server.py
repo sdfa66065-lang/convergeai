@@ -8,11 +8,10 @@ uses a fast LLM to distill both into structured, actionable context
 for semantic conflict resolution.
 """
 
-import json
 import logging
 import os
 import sys
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
 logger = logging.getLogger("context-distiller")
@@ -62,11 +61,7 @@ class PullRequest:
 
 @dataclass
 class DistilledContext:
-    upstream_intent: str
-    internal_constraints: list[str]
-    conflict_guidance: str
-    risk_assessment: str
-    recommended_strategy: str
+    analysis: str                    # full plaintext LLM output
     jira_key: Optional[str] = None
     pr_ref: Optional[str] = None
 
@@ -171,11 +166,9 @@ async def fetch_pull_request(repo: str, pr_number: int) -> PullRequest:
 # ---------------------------------------------------------------------------
 
 DISTILL_SYSTEM_PROMPT = """\
-You are a concise technical analyst for an AI fork-sync engine. Given upstream PR \
-information and internal Jira ticket constraints, produce a structured analysis that \
-will guide an AI agent resolving merge conflicts.
+You are an Expert Technical Analyst for an AI Enterprise Fork-Sync Engine. Your job is to analyze upstream PR changes and internal Jira constraints, then produce a highly structured, plaintext analysis that will guide an autonomous AI agent in resolving semantic merge conflicts.
 
-Be extremely precise and actionable. Use bullet points. Never be vague.\
+You MUST return your analysis using the exact Markdown template provided. Be extremely precise and actionable. Use uppercase Semantic Anchors (like [INTENT] and [MANDATORY_CONSTRAINTS]) to guide the agent's attention. Do not use JSON. Never be vague.\
 """
 
 DISTILL_USER_TEMPLATE = """\
@@ -190,17 +183,25 @@ DISTILL_USER_TEMPLATE = """\
 
 ---
 
-Produce a JSON object with these exact keys:
-- "upstream_intent": One paragraph explaining what the upstream change is trying to achieve.
-- "internal_constraints": A list of strings, each a specific business rule or constraint \
-  that the fork MUST preserve.
-- "conflict_guidance": Specific instructions for resolving the conflict — which parts of \
-  upstream to accept, which internal logic to keep, and how to blend them.
-- "risk_assessment": What could go wrong if the merge is done incorrectly.
-- "recommended_strategy": One of "accept_upstream", "keep_ours", "blend", or "manual_review" \
-  with a brief justification.
+Produce your analysis using EXACTLY the following Markdown structure. Do not output JSON or code fences.
 
-Return ONLY valid JSON, no markdown fences.\
+### [SOURCE]: Upstream vs. Internal Fork
+**[INTENT]**
+(One concise paragraph explaining exactly what the upstream change is trying to achieve architecturally.)
+
+**[MANDATORY_CONSTRAINTS]**
+- MUST: (Actionable business rule from the internal ticket that must be preserved)
+- MUST: (Another actionable rule, if applicable)
+- MUST NOT: (What the agent must not overwrite or delete to maintain compliance)
+
+**[CONFLICT_GUIDANCE]**
+(Specific instructions on how the agent should blend the new upstream architecture with the internal constraints for the conflicted files.)
+
+**[RISK_ASSESSMENT]**
+(What could silently go wrong if the merge is done incorrectly.)
+
+**[RECOMMENDED_STRATEGY]**
+[STRATEGY: BLEND | ACCEPT_UPSTREAM | KEEP_OURS | MANUAL_REVIEW] - (Provide a 1-sentence justification for this strategy.)\
 """
 
 
@@ -252,24 +253,8 @@ async def distill_context(
 
     raw_text = response.content[0].text.strip()
 
-    # Parse the LLM JSON response
-    try:
-        parsed = json.loads(raw_text)
-    except json.JSONDecodeError:
-        # Try to extract JSON from markdown fences
-        import re
-        match = re.search(r"\{[\s\S]*\}", raw_text)
-        if match:
-            parsed = json.loads(match.group())
-        else:
-            raise ValueError(f"LLM returned non-JSON response: {raw_text[:200]}")
-
     return DistilledContext(
-        upstream_intent=parsed.get("upstream_intent", ""),
-        internal_constraints=parsed.get("internal_constraints", []),
-        conflict_guidance=parsed.get("conflict_guidance", ""),
-        risk_assessment=parsed.get("risk_assessment", ""),
-        recommended_strategy=parsed.get("recommended_strategy", ""),
+        analysis=raw_text,
         jira_key=jira_info.key if jira_info else None,
         pr_ref=f"{pr_info.repo}#{pr_info.pr_number}" if pr_info else None,
     )
@@ -291,10 +276,9 @@ async def list_tools() -> list[Tool]:
                 "Single entry point for context distillation. Provide a Jira ticket "
                 "key and/or a GitHub PR reference (repo + pr_number). Internally "
                 "fetches from Jira and GitHub APIs, then uses a fast LLM to produce "
-                "structured merge-conflict guidance: upstream intent, internal "
-                "constraints, conflict resolution guidance, risk assessment, and "
-                "recommended strategy. Returns structured JSON suitable for display "
-                "in a review UI to assist decision-making during user intervention."
+                "structured plaintext merge-conflict guidance with semantic anchors: "
+                "[INTENT], [MANDATORY_CONSTRAINTS], [CONFLICT_GUIDANCE], "
+                "[RISK_ASSESSMENT], and [RECOMMENDED_STRATEGY]."
             ),
             inputSchema={
                 "type": "object",
@@ -350,17 +334,22 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             if not jira_info and not pr_info:
                 return [TextContent(
                     type="text",
-                    text=json.dumps({"error": "Provide at least a ticket_id or repo+pr_number."}),
+                    text="Error: Provide at least a ticket_id or repo+pr_number.",
                 )]
 
             result = await distill_context(pr_info, jira_info, conflicted_files)
-            return [TextContent(type="text", text=json.dumps(asdict(result), indent=2))]
+            output = result.analysis
+            if result.jira_key:
+                output += f"\n\n---\nJira: {result.jira_key}"
+            if result.pr_ref:
+                output += f"\nPR: {result.pr_ref}"
+            return [TextContent(type="text", text=output)]
 
         else:
-            return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
+            return [TextContent(type="text", text=f"Error: Unknown tool: {name}")]
 
     except Exception as e:
-        return [TextContent(type="text", text=json.dumps({"error": str(e)}))]
+        return [TextContent(type="text", text=f"Error: {e}")]
 
 
 # ---------------------------------------------------------------------------
