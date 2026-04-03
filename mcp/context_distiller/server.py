@@ -9,10 +9,13 @@ for semantic conflict resolution.
 """
 
 import json
+import logging
 import os
 import sys
 from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
+
+logger = logging.getLogger("context-distiller")
 
 import anthropic
 import httpx
@@ -74,7 +77,7 @@ class DistilledContext:
 
 async def fetch_jira_ticket(ticket_id: str) -> JiraTicket:
     """Fetch a Jira ticket by its key (e.g. PROJ-101)."""
-    if not JIRA_BASE_URL or not JIRA_API_TOKEN:
+    if not JIRA_BASE_URL or not JIRA_EMAIL or not JIRA_API_TOKEN:
         raise ValueError(
             "JIRA_BASE_URL, JIRA_EMAIL, and JIRA_API_TOKEN must be set. "
             "Export them as environment variables."
@@ -334,8 +337,14 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
             if ticket_id:
                 jira_info = await fetch_jira_ticket(ticket_id)
+            else:
+                logger.warning("No ticket_id provided — distilling without internal constraints")
 
-            if repo and pr_number:
+            if repo and not pr_number:
+                logger.warning("repo=%s provided without pr_number — skipping upstream PR fetch", repo)
+            elif pr_number and not repo:
+                logger.warning("pr_number=%s provided without repo — skipping upstream PR fetch", pr_number)
+            elif repo and pr_number:
                 pr_info = await fetch_pull_request(repo, pr_number)
 
             if not jira_info and not pr_info:
