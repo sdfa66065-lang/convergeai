@@ -24,6 +24,21 @@ instructions: |
 
   ## Workflow
 
+  0. **Read local merge conflicts.**
+     First, identify what files are in conflict:
+       - Run `git diff --name-only --diff-filter=U` to list conflicted files.
+       - If that returns nothing, run `git status` to check the working tree.
+       - Read each conflicted file to see the <<<<<<< / ======= / >>>>>>>
+         conflict markers and understand what both sides changed.
+
+     Then, extract parameters from the user's prompt:
+       - `repo` — the GitHub repository in owner/repo format
+       - Cherry-pick or merge commit SHA (use this to look up the upstream PR)
+       - `pr_number` — the upstream pull request number (if provided)
+       - `ticket_id` — the Jira ticket key (if provided, e.g. PROJ-101)
+
+     Use the conflicted file list and these parameters in the next step.
+
   1. **Gather context.**
      Call `distill_context` with the relevant parameters:
        - `ticket_id` — Jira ticket key (e.g. PROJ-101)
