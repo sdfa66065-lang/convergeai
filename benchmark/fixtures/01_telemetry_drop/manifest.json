@@ -1,0 +1,24 @@
+{
+  "name": "01_telemetry_drop",
+  "description": "Upstream renames param and swaps data source; fork has telemetry + cache",
+  "conflict_files": ["distill_context.py"],
+  "language": "python",
+  "semantic_checks": {
+    "must_contain": [
+      "log_telemetry",
+      "cache.exists",
+      "cache.get",
+      "fetch_jira_payload",
+      "fetch_github_payload"
+    ],
+    "must_not_contain": [
+      "<<<<<<<",
+      "=======",
+      ">>>>>>>"
+    ]
+  },
+  "goose_prompt_control": "There is a merge conflict in distill_context.py. Please resolve it. Do not leave any conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in distill_context.py. Call distill_context for commit f0e36e90891e3f15c89809dfc71d745e5bd554e3 of repository sdfa66065-lang/convergeai to get the rules, then rewrite distill_context.py to resolve the conflict according to those rules. Do not leave any conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["single-file", "parameter-rename", "enterprise-customization"]
+}

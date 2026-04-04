@@ -96,21 +96,11 @@ git rebase upstream/main
 
 ## Quick Start
 
-### Prerequisites
-
-- Python 3.10+
-- Git
-- [Goose](https://github.com/block/goose) (AI agent engine)
-
-### Installation
+One-command setup. The script installs Goose (via Homebrew), builds the Python environment, and securely prompts for your API keys.
 
 ```bash
 git clone https://github.com/sdfa66065-lang/convergeai.git
 cd convergeai
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r mcp/context_distiller/requirements.txt
-```
 
 See [`mcp/README.md`](mcp/README.md) for testing the MCP server (MCP Inspector, JSON-RPC, direct Python).
 
@@ -124,18 +114,16 @@ cp mcp/context_distiller/.env.example .env
 # GITHUB_TOKEN, and ANTHROPIC_API_KEY
 ```
 
-### Run with Goose
+# Interactive setup (installs deps, prompts for keys)
+chmod +x setup.sh && ./setup.sh
 
-```bash
-export CONVERGEAI_ROOT=$(pwd)
-goose session start --profile ai-maintainer
+# Resolve your first merge conflict
+./converge.sh "There is a merge conflict in main.py. \
+The cherrypick commit sha is abc123 in repository owner/repo. \
+Please call distill_context and resolve it."
 ```
 
-Or run headless with a prompt file:
-
-```bash
-goose run --profile ai-maintainer --instructions "$(cat prompt.md)"
-```
+`setup.sh` is idempotent — run it again any time and it safely skips steps already completed.
 
 ### Try the Demo
 
@@ -154,6 +142,9 @@ See [`demo/exporting_chat_history.md`](demo/exporting_chat_history.md) for how t
 
 ```
 convergeai/
+├── setup.sh                  # One-command bootstrap (install deps + configure keys)
+├── converge.sh               # CLI wrapper to run the AI Maintainer agent
+├── .gitignore                # Protects .env secrets from being committed
 ├── goose/
 │   └── ai-maintainer.yaml          # Goose profile for the AI Maintainer agent
 ├── mcp/
