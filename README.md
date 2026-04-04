@@ -102,18 +102,6 @@ One-command setup. The script installs Goose (via Homebrew), builds the Python e
 git clone https://github.com/sdfa66065-lang/convergeai.git
 cd convergeai
 
-See [`mcp/README.md`](mcp/README.md) for testing the MCP server (MCP Inspector, JSON-RPC, direct Python).
-
-### Configure Environment
-
-Copy the example env file and fill in your credentials:
-
-```bash
-cp mcp/context_distiller/.env.example .env
-# Edit .env with your JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN,
-# GITHUB_TOKEN, and ANTHROPIC_API_KEY
-```
-
 # Interactive setup (installs deps, prompts for keys)
 chmod +x setup.sh && ./setup.sh
 
@@ -124,6 +112,18 @@ Please call distill_context and resolve it."
 ```
 
 `setup.sh` is idempotent — run it again any time and it safely skips steps already completed.
+
+### Manual Configuration (alternative to setup.sh)
+
+Copy the example env file and fill in your credentials:
+
+```bash
+cp .env.example .env
+# Edit .env with your JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN,
+# GITHUB_TOKEN, and ANTHROPIC_API_KEY
+```
+
+See [`mcp/README.md`](mcp/README.md) for testing the MCP server (MCP Inspector, JSON-RPC, direct Python).
 
 ### Try the Demo
 
@@ -142,17 +142,21 @@ See [`demo/exporting_chat_history.md`](demo/exporting_chat_history.md) for how t
 
 ```
 convergeai/
-├── setup.sh                  # One-command bootstrap (install deps + configure keys)
-├── converge.sh               # CLI wrapper to run the AI Maintainer agent
-├── .gitignore                # Protects .env secrets from being committed
+├── setup.sh                         # One-command bootstrap (install deps + configure keys)
+├── converge.sh                      # CLI wrapper to run the AI Maintainer agent
+├── .env.example                     # Environment variable template
+├── .gitignore                       # Protects .env secrets from being committed
 ├── goose/
 │   └── ai-maintainer.yaml          # Goose profile for the AI Maintainer agent
 ├── mcp/
 │   ├── README.md                    # MCP server setup, testing, and usage docs
 │   └── context_distiller/
 │       ├── server.py                # Context Distiller MCP server (stdio)
-│       ├── requirements.txt         # Python dependencies
-│       └── .env.example             # Environment variable template
+│       └── requirements.txt         # Python dependencies
+├── benchmark/                       # Evaluation framework for merge-conflict fixtures
+│   ├── config.py
+│   ├── fixtures/
+│   └── runner/
 ├── demo/
 │   ├── exporting_chat_history.md    # Guide to exporting Goose session logs
 │   └── single_file_blending/test1/  # Working conflict example with session logs
