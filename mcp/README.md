@@ -15,8 +15,8 @@ pip install -r mcp/context_distiller/requirements.txt
 Copy the example and fill in your credentials:
 
 ```bash
-cp mcp/context_distiller/.env.example mcp/context_distiller/.env
-source mcp/context_distiller/.env
+cp .env.example .env
+source .env
 ```
 
 Required variables:

@@ -12,7 +12,14 @@ import logging
 import os
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Optional
+
+from dotenv import load_dotenv
+
+# Load .env from repo root (two levels up from this script)
+_repo_root = Path(__file__).resolve().parent.parent.parent
+load_dotenv(_repo_root / ".env")
 
 logger = logging.getLogger("context-distiller")
 
