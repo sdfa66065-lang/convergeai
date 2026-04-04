@@ -1,0 +1,688 @@
+{
+  "id": "20260403_23",
+  "working_dir": "/Users/sabrinayu/Documents/GitHub/convergeai",
+  "name": "Merge conflict resolution",
+  "user_set_name": false,
+  "session_type": "user",
+  "created_at": "2026-04-03T20:09:37Z",
+  "updated_at": "2026-04-03T21:13:37Z",
+  "extension_data": {
+    "enabled_extensions.v0": {
+      "extensions": [
+        {
+          "type": "platform",
+          "name": "apps",
+          "description": "Create and manage custom Goose apps through chat. Apps are HTML/CSS/JavaScript and run in sandboxed windows.",
+          "display_name": "Apps",
+          "bundled": true,
+          "available_tools": []
+        },
+        {
+          "type": "platform",
+          "name": "todo",
+          "description": "Enable a todo list for goose so it can keep track of what it is doing",
+          "display_name": "Todo",
+          "bundled": true,
+          "available_tools": []
+        },
+        {
+          "type": "platform",
+          "name": "Extension Manager",
+          "description": "Enable extension management tools for discovering, enabling, and disabling extensions",
+          "display_name": "Extension Manager",
+          "bundled": true,
+          "available_tools": []
+        },
+        {
+          "type": "platform",
+          "name": "summon",
+          "description": "Load knowledge and delegate tasks to subagents",
+          "display_name": "Summon",
+          "bundled": true,
+          "available_tools": []
+        },
+        {
+          "type": "platform",
+          "name": "developer",
+          "description": "Write and edit files, and execute shell commands",
+          "display_name": "Developer",
+          "bundled": true,
+          "available_tools": []
+        },
+        {
+          "type": "platform",
+          "name": "tom",
+          "description": "Inject custom context into every turn via GOOSE_MOIM_MESSAGE_TEXT and GOOSE_MOIM_MESSAGE_FILE environment variables",
+          "display_name": "Top Of Mind",
+          "bundled": true,
+          "available_tools": []
+        },
+        {
+          "type": "platform",
+          "name": "analyze",
+          "description": "Analyze code structure with tree-sitter: directory overviews, file details, symbol call graphs",
+          "display_name": "Analyze",
+          "bundled": true,
+          "available_tools": []
+        },
+        {
+          "type": "stdio",
+          "name": "converge-ai",
+          "description": "",
+          "cmd": "/Users/sabrinayu/Documents/GitHub/convergeai/.venv/bin/python",
+          "args": [
+            "/Users/sabrinayu/Documents/GitHub/convergeai/mcp/context_distiller/server.py"
+          ],
+          "envs": {},
+          "env_keys": [
+            "CONVERGEAI_ROOT",
+            "ANTHROPIC_API_KEY"
+          ],
+          "timeout": 300,
+          "bundled": null,
+          "available_tools": []
+        }
+      ]
+    },
+    "todo.v0": {
+      "content": "- [x] Read conflicted file (test_conflict.py)\n- [x] Read surrounding codebase (server.py, README) for semantic context\n- [x] Resolve conflict by blending both sides\n"
+    }
+  },
+  "total_tokens": 12232,
+  "input_tokens": 11859,
+  "output_tokens": 373,
+  "accumulated_total_tokens": 70587,
+  "accumulated_input_tokens": 67481,
+  "accumulated_output_tokens": 3106,
+  "schedule_id": null,
+  "recipe": null,
+  "user_recipe_values": null,
+  "conversation": [
+    {
+      "id": "msg_20260403_23_f80c970d-0c68-4893-a882-03bf2cc360ed",
+      "role": "user",
+      "created": 1775246989,
+      "content": [
+        {
+          "type": "text",
+          "text": "There is a merge conflict in test_conflict.py. Please resolve it without converge ai."
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_014AakEmZKwAjxLpYZKL3ach",
+      "role": "assistant",
+      "created": 1775246993,
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "Let me look at the merge conflict in test_conflict.py.",
+          "signature": "EvMBClsIDBgCKkAPbIEFA76fuG7pDeQdy5nLxlErPqLCyiaGCW0WSh9pVcb05paM9sdENW69fWxDME291zDnkvxi7z7aSo0/9CT9MhFjbGF1ZGUtc29ubmV0LTQtNjgAEgxP8bQzEyDzqiCt7lwaDAZ0dBPJUwE/xMXDKiIwBStNOqo/U3QHa49CzQICR/UdRR+QIPJv8Pfx3DEfnsuPhvuXUgUdgr0wN2KYFDFGKkaM6KF16mVd5G9NJssbCs76BnoHXGutyJPBjAxwjuFu891CDAY0dBNKMMI9ZhRnIP8Q+xNv4JG+H9ukgeNHHLVdx78GYPBQGAE="
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_5fd98072-9e0b-4b75-a820-f7b31961dd26",
+      "role": "assistant",
+      "created": 1775246993,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_01RFTn9zKAcHZ1q9eymWrqam",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "shell",
+              "arguments": {
+                "command": "cat /Users/sabrinayu/Documents/GitHub/convergeai/test_conflict.py"
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "developer"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_ae71f59c-6e02-4faf-a21c-078948d261c9",
+      "role": "user",
+      "created": 1775246993,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_01RFTn9zKAcHZ1q9eymWrqam",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "def distill_context(ticket_id: str):\n<<<<<<< HEAD\n    log_telemetry(\"distill_context_called\", ticket_id)\n    if cache.exists(ticket_id):\n        return cache.get(ticket_id)\n    return fetch_jira_payload(ticket_id)\n=======\ndef distill_context(target_ref: str):\n    return fetch_github_payload(target_ref)\n>>>>>>> upstream/main",
+                  "annotations": {
+                    "priority": 0.0
+                  }
+                }
+              ],
+              "structuredContent": {
+                "stdout": "def distill_context(ticket_id: str):\n<<<<<<< HEAD\n    log_telemetry(\"distill_context_called\", ticket_id)\n    if cache.exists(ticket_id):\n        return cache.get(ticket_id)\n    return fetch_jira_payload(ticket_id)\n=======\ndef distill_context(target_ref: str):\n    return fetch_github_payload(target_ref)\n>>>>>>> upstream/main",
+                "stderr": "",
+                "exit_code": 0
+              },
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_01NWvarYGRsZQMotncASjj5R",
+      "role": "assistant",
+      "created": 1775247000,
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "There's a merge conflict in test_conflict.py. I need to resolve it without converge-ai. Let me analyze the conflict:\n\n- HEAD version: `distill_context(ticket_id: str)` - logs telemetry, checks cache, and fetches Jira payload\n- upstream/main version: `distill_context(target_ref: str)` - fetches GitHub payload with a different parameter name\n\nThe function signature conflict is interesting - HEAD uses `ticket_id` while upstream uses `target_ref`. The HEAD version adds telemetry and caching, while upstream changes the parameter and fetch function.\n\n\nThe HEAD version looks more complete with its telemetry and caching logic, but I'm realizing the function might need to support both Jira and GitHub sources. Let me check the broader codebase to understand what the intended behavior should be.",
+          "signature": "EsILClsIDBgCKkC1Gk65nqNi2JcfCGDcSjJnen4EmcHKAI7tke5cDn4wH5LvrPTF+4NFHMcq3WN2LjmGKHqlpa2fH/Pli/mVk1emMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgyNmtwOm03rZS53yIsaDA/H+NDdkh0nHNR80yIw/9UfN4Ve41KBMklMlD/qq4vKM6cjEgKJY4uziXHeNJLrwLRYFA72TEaSjd33VdTCKpQKZIWoLNtBRFENy1c8WjHR9T/xCIeWMU2cF181D/EIoLbkWVXMqo7L0lEI9qTWsBeqddtQuGB8HODDkcluGUU/8HCqZ9IEraa4pX3agkCl/a48MwaoZ7P1enLq1EvoGVhbdZLAZCLvBpWJ8FaUhhxN7OqJhBoW/TfVn2jfUvvESYr6+DMUaUzfo4GoiKy7mskcYcgMHW5n9Id049q9PA621Cr2ouDU4h5pQI5Oc/8YdE/U/L2qsVl4Hj9lgvQxL0UazUUlHI4Tat8BceSa90+kyTT33upe0lFCUkaOTelthUTv+UT79vl+9xMBFYrnf/KeGhxQWysEMEQHARBP2rx14BM0mITjVK4X5bNOfjIpwTN+yzL9xsqVXocansZzs6q5kkn3N9dNF7l1wW77BmrTl90oifuWdMRrUiiQJTZNRe+HGQH5EB+qTnV2br7HFXL7XLJJLSh3NLDfzYRuc5i7TVunCwaCy9mY4xLpG5JJpNDD+13++X0ws/2L4FSbAXC4Ez9FZoghyRtwXyGYlHTFNlz59WIIyIcqNbtk2pmTX0vyHU2xTIpS1QZH0b/LzZZiTuelB0f+QeFVFOINOhn4pIShvzvN0TslwBMKTG8j8qOza88wku/0KmEz5bh5YNOYGErI2fx222BlG+O9fLPmYl0rZ7xd4C0RwMutDKtE4pDmkyUS1G/N7RgvqpkVGRB9ZnBxUaMR3Lf98ZF3cQT4r/kuVYtsNYwxN/5XlvV2y6pXDHmeQ4qAjHQxAXFX97aLnDcb/IYQwkeB+jIHJ1iceXG5oNSUKjBe6es0o1KLoGK7qgwj2qRlehIoY0rUtBbBU4155rTbfoCc7xqkKbVzjXhJtzGyazRQra/A8nwGJKmA+naaZVZ/rvz7wWcfbtmc6nZk0nMNyzHR7bo1IPf4AtIILczSf/530P9ls/KPXsFeyuxtYiomPCxjQvs5osWzd+la+zlXLb7FFQRCxYimixKtDlPlRzrHsofRHrmtVe1Bl5HFGTwyKk+FSHkABqg+1/MdOd+m36xy1XKDpcx5ioFCHhEIVNQKj1GxNtsVJ/wl+vfv6xus5d+TFkCngMb9HsYen5Tu71McxcyjvmhAUP1ij5u77mAb47GHnS2lWgXM130VprW3jBAEb7LMahULgABwRY2IZ+hW3aMxtZyQUeULkrEXrOCwFq+pwBtS9P/z6ajeL0n0HedRbTnwMe/LWU99lBLI3CD26Ch2zZ66V95g09siLG0BBXNgCL17QFuncGWBfyiffVkkEollqd87WAuTn2tko6iaDtuvs28XHK5EEEr+Dz/WMujdSDv8FUOq1kJSvTM6NnVoUTjX6Q6wOO8jELX7fUPyy+eNcfGtB8xB85xCOcVjUoEhxTqqWsmho9xDKBL5rNe4sGl2TzkNynHpx4f4rLrP79K2yIBF2CUi7nFqpLNMa5unVEpEq2qgkl40z1VFASFak7SjqljE/fAEIhOQy97VSzyiAuosA+H55FYemoKewWu21BOFQ3wFXNvQV9WByAvtd4kZmawgkxX1TbjK11430v+Kmdq3B/FhbDZTgwRO/w2lDZEmb9ihD0k24C10GyRF20eT8++QFJNeDkndC1Wbw5YeRqvCW23KJQT/qRoSO68gHTKXI93CIk3WjrKgm8fAHLuRsw95zuoOeG0CJXHkBrnqURdAKS62bxQLwzJICaIkcYxZtR2hUrXfJTM4zRj/V3MBSH1deJV/cRgB"
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_79634038-1cca-450b-bdbf-6c7ab1cb0bb0",
+      "role": "assistant",
+      "created": 1775247000,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_0128ndYenKwazbB8Tcoz4diZ",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "shell",
+              "arguments": {
+                "command": "ls /Users/sabrinayu/Documents/GitHub/convergeai/"
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "developer"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_b4d30155-d0f1-4974-866b-1a01f88ee1e0",
+      "role": "user",
+      "created": 1775247000,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_0128ndYenKwazbB8Tcoz4diZ",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "LICENSE\nREADME.md\nconverge.sh\ngoose\nmcp\ntest_conflict.py",
+                  "annotations": {
+                    "priority": 0.0
+                  }
+                }
+              ],
+              "structuredContent": {
+                "stdout": "LICENSE\nREADME.md\nconverge.sh\ngoose\nmcp\ntest_conflict.py",
+                "stderr": "",
+                "exit_code": 0
+              },
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_019GTSPVsKGqWcwmSf5jtd3z",
+      "role": "assistant",
+      "created": 1775247007,
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "Let me look at the conflict more carefully. The conflict is:\n\nHEAD version:\n```python\ndef distill_context(ticket_id: str):\n    log_telemetry(\"distill_context_called\", ticket_id)\n    if cache.exists(ticket_id):\n        return cache.get(ticket_id)\n    return fetch_jira_payload(ticket_id)\n```\n\nupstream/main version:\n```python\ndef distill_context(target_ref: str):\n    return fetch_github_payload(target_ref)\n```\n\nThese two versions have different parameter names and different implementations. \n\nThe HEAD version is Jira-focused with caching and telemetry, while upstream/main is GitHub-focused with a simpler implementation. Since the system should support both Jira and GitHub references, I need to examine the rest of the codebase to understand how these should be unified or if they're meant to coexist.",
+          "signature": "Ep8KClsIDBgCKkBdtPbq+xOqoSIdG7Gx6lh8qZ36uQ6M/H5A/GTXzndJR4ailmLUO3kHvxtw/MuGVOhqSJ8AQAkZi04Q23tqOBgaMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgxERNiK8GY4pnBlnnQaDFbSj3dzf518pOsfVyIw2HQBlSZZgmN5HcgOOgUhAdVh3wYdFJtgIK7dnMWRbTSjJP9yvMRG7+pNwIFvvDjoKvEIZFdQ8ZNZCn3k+SXGAbGcvsZ/cGM7hzP/Ot8cHidMJjAeqr9Kzq6iq+eg98mr7NQhNsZ8NIzuDavcbI2T4MkVYsXPrrY0P88QCgQWpKhYYS9jd5oC1pOLfIE3StxOwVcxolhTqtv/YM9yZPw3/U2uweVTAsx3zVphj6ZU3jPt0T4m4j+fL03+J0KGHLwoxd58dUXtTTmPVqWKyrhcUM92fk+fLjymzhW52VDBLud0iy/YIBT2ugnwzkjbNmASugL5SjdSI/htasGcv8xva80lPDFaSar/45EPndgGsVI8fTCHoSexe6N8C0Py+N5kTSqwyvBa1fAUMTlgdILFCmGI4UTcUfvfSxU7fIt7W0a4SP6gEC/B0kMpNDvaUNlonvn1xQ7H9gmVGtdEX/uDDr3i37WAKYhVbv0PmdpgiruV7/GVsSEr4l1DzNdoS0A9uIYIG36p4DznSa73ZGTPBMDJDDhZZ9dx1crqtKB8eoJt+mQQJPXhlBRekyPkTGCdWNTO6ASDg+LJ1w+rv/Ctsf4qE+x/sF+yuRpcTJ0tnJuokDD1NNp8UWxFGLdQWSrZ6eH4lLvxEoDizxKH8C4HmrAj+G1lbfkOdgIAvTE1xqpRScS2EvNdwChTm2I9vA8hxYim7M2PnmlJu608yzZTt1VixwYhBKcDGSREskixXcUA1xmBwkRwpuxcUOhm+zOBAqwTHRvPYDz/iMRozYY2LTn4DrAw97R5jqwhx+zvXxM84Wj70fsvNUhqS5Wg29n8DLlwcM5M1V9MSlqP0doXAlLDrNwYFlbTZx/kDCBPkqMNdLmHtzVLpXkqhuNx24NFmFBRHYyXT/2rXlawYe/MSsPF/Cqyvht8y9SMaGJhgYHg0r3vYNHOr6HnKh6nju0twGR9nGjFF7iMx63GRzQjT7zOAfZLJ0PPHriFMJKyJRWiUhs03t4mEMAIr+OyXEcXpcaTykyAVntk+7aIyELAYWmYuRupZ8i8HjoEZ06V4U3//ILWeTOrlrts4t91suAPSGAMKB8YsU+8GZK7bSWYjGP1hPqpgsGz9QD9g2e2ZAhuRA9CnauenRPQFVZz/A9P+tq004M8e1N4Gq91gvVuOvNQgRR8wAZtO90p3p7u73s+T5cx81FGYYTPEId4QuSTG6qSmTleoziZ+mRg962BTD6MnOtDnNEeS9+Js/fjWO7F+t6tSpGGaBAo6q2sSb5UsjsQ+j3+sCwfXnmOaTBtz3wdwwKsRxVmV1liFt26eheFYyJ2vsu723sj4fJ2yPpokcocfU+PDI4X6128NQQf62fTVHcVKwWYuQyVJDGDBliUXiTL1MT56Pykhbr9fPlEcrRYreYTV0ZTjw6VqvJmKzy+qVZiWCSnufxTDK7LLy6qJWmak9Jm65npyJZX43JE2U0jUJS/UQx+AaYHqRXOf02LMpERWF2xpHf/HXU9S2FP19pHCac8Tr5iKGc3bhk0+gYBP/9HWOIZUBDpvsQjuqMVXc9IXbOJSu2kX8HIU7D523qbGAE="
+        },
+        {
+          "type": "text",
+          "text": "Let me look at the broader codebase to understand the context before resolving the conflict."
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_1c2a0cb5-4491-4840-88ae-c3e780a4bb75",
+      "role": "assistant",
+      "created": 1775247007,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_015anZSEYaVJudwCLFNpSSDC",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "shell",
+              "arguments": {
+                "command": "cat /Users/sabrinayu/Documents/GitHub/convergeai/README.md"
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "developer"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_988e6b67-79fb-4b7c-9bb0-75db0b415221",
+      "role": "user",
+      "created": 1775247007,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_015anZSEYaVJudwCLFNpSSDC",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "# ConvergeAI\n\n**An autonomous AI engine that eliminates rebase hell for enterprise fork maintainers.**\n\nConvergeAI is a semantic fork-sync engine that uses AI coding agents to resolve merge conflicts between upstream open-source projects and internal enterprise forks. Instead of brute-force textual merging, it understands *why* code changed upstream and *what* business rules the fork must preserve — then synthesizes a resolution that satisfies both.\n\n---\n\n## The Problem\n\nEnterprise teams maintaining custom forks of open-source projects face a recurring nightmare: **rebase hell**. Every upstream release brings hundreds of commits that collide with internal customizations. Standard `git rebase` only detects textual conflicts — it silently lets upstream architectural changes overwrite custom business logic, leading to:\n\n- Production outages from silently lost internal patches\n- Weeks of manual, error-prone conflict resolution per release cycle\n- Developer burnout and mounting technical debt\n\n## The Solution\n\nConvergeAI acts as an autonomous maintainer that:\n\n1. **Understands both sides** — fetches upstream PR intent *and* internal ticket constraints\n2. **Resolves semantically** — blends new upstream architecture with required business rules\n3. **Validates automatically** — runs compilers and test suites, self-correcting on failure\n4. **Handles blast radius** — traces API signature changes across the entire codebase\n\n---\n\n## Architecture\n\n```\n┌─────────────────────────────────────────────────────┐\n│                   CLI Orchestrator                   │\n│              (composes Goose as engine)              │\n├─────────────────────────────────────────────────────┤\n│            Context Distiller MCP Server              │\n│     (single distill_context tool — fetches both     │\n│      upstream PR intent & internal constraints,      │\n│      then LLM-distills into structured guidance)     │\n├─────────────────────────────────────────────────────┤\n│               Conflict Resolution Agent             │\n│         (semantic merge + self-correction)           │\n├─────────────────────────────────────────────────────┤\n│            Validation Loop (compile/test)            │\n├─────────────────────────────────────────────────────┤\n│          Blast Radius Analysis (ast-grep)            │\n└─────────────────────────────────────────────────────┘\n```\n\n### Key Design Decisions\n\n- **Goose as the engine** — We compose [Goose](https://github.com/block/goose) via a CLI wrapper rather than forking it, leveraging its native `bash` and file-editing tools while avoiding maintenance nightmares.\n\n- **Context Distiller MCP (LLM-in-the-Middle)** — A single `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira, then uses a fast LLM (Claude Haiku) to produce structured plaintext guidance with semantic anchors (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.\n\n- **AST-first code navigation** — Tree-sitter / `ast-grep` for structural, context-aware search-and-replace. This handles repository-wide API signature changes without booting a language server on broken mid-rebase code.\n\n---\n\n## How It Works\n\n```\ngit rebase upstream/main\n        │\n        ▼\n   ┌─ CONFLICT ──┐\n   │              │\n   ▼              ▼\n   distill_context(\n     ticket_id, repo,\n     pr_number,\n     conflicted_files\n   )\n          │\n          ▼\n   Structured guidance\n   ([INTENT], [MANDATORY_CONSTRAINTS],\n    [CONFLICT_GUIDANCE], [RISK_ASSESSMENT],\n    [RECOMMENDED_STRATEGY])\n          │\n          ▼\n   Semantic merge\n   (AI agent resolves\n    conflict using guidance)\n          │\n          ▼\n   Run compiler + tests\n          │\n     ┌────┴────┐\n     │ PASS?   │\n     ▼         ▼\n   Yes ──→  Continue rebase\n   No  ──→  Self-correct & retry (up to N attempts)\n```\n\n---\n\n## Quick Start\n\n### Prerequisites\n\n- Python 3.10+\n- Git\n- [Goose](https://github.com/block/goose) (AI agent engine)\n\n### Installation\n\n```bash\ngit clone https://github.com/sdfa66065-lang/convergeai.git\ncd convergeai\npython3 -m venv .venv\nsource .venv/bin/activate\npip install -r mcp/context_distiller/requirements.txt\n```\n\n### Configure Environment\n\nCopy the example env file and fill in your credentials:\n\n```bash\ncp mcp/context_distiller/.env.example .env\n# Edit .env with your JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN,\n# GITHUB_TOKEN, and ANTHROPIC_API_KEY\n```\n\n### Run with Goose\n\n```bash\nexport CONVERGEAI_ROOT=$(pwd)\ngoose session start --profile ai-maintainer\n```\n\nOr run headless with a prompt file:\n\n```bash\ngoose run --profile ai-maintainer --instructions \"$(cat prompt.md)\"\n```\n\n---\n\n## Project Structure\n\n```\nconvergeai/\n├── goose/\n│   └── ai-maintainer.yaml   # Goose profile for the AI Maintainer agent\n├── mcp/\n│   └── context_distiller/\n│       ├── server.py         # Context Distiller MCP server (stdio)\n│       ├── requirements.txt  # Python dependencies\n│       └── .env.example      # Environment variable template\n├── README.md\n└── LICENSE\n```\n\n---\n\n## Roadmap\n\n- [x] Phase 0 — Single-file context distiller workflow\n- [x] Phase 1 — Unified `distill_context` MCP tool (Jira + GitHub + LLM distillation)\n- [x] Phase 2 ([Supported by Goose](https://block.github.io/goose/docs/guides/recipes/session-recipes/)) — Validation loop (compile/test + self-correction)\n- [ ] Phase 3 — Blast radius analysis with `ast-grep`\n- [ ] Phase 4 — LSP-based pre-flight dependency mapping\n- [ ] Enterprise integrations (Jira, Linear, GitHub Enterprise)\n\n---\n\n## Contributing\n\nThis project is in active early development. If you're interested in contributing or have ideas for enterprise fork management, open an issue or reach out.\n\n---\n\n## License\n\nMIT",
+                  "annotations": {
+                    "priority": 0.0
+                  }
+                }
+              ],
+              "structuredContent": {
+                "stdout": "# ConvergeAI\n\n**An autonomous AI engine that eliminates rebase hell for enterprise fork maintainers.**\n\nConvergeAI is a semantic fork-sync engine that uses AI coding agents to resolve merge conflicts between upstream open-source projects and internal enterprise forks. Instead of brute-force textual merging, it understands *why* code changed upstream and *what* business rules the fork must preserve — then synthesizes a resolution that satisfies both.\n\n---\n\n## The Problem\n\nEnterprise teams maintaining custom forks of open-source projects face a recurring nightmare: **rebase hell**. Every upstream release brings hundreds of commits that collide with internal customizations. Standard `git rebase` only detects textual conflicts — it silently lets upstream architectural changes overwrite custom business logic, leading to:\n\n- Production outages from silently lost internal patches\n- Weeks of manual, error-prone conflict resolution per release cycle\n- Developer burnout and mounting technical debt\n\n## The Solution\n\nConvergeAI acts as an autonomous maintainer that:\n\n1. **Understands both sides** — fetches upstream PR intent *and* internal ticket constraints\n2. **Resolves semantically** — blends new upstream architecture with required business rules\n3. **Validates automatically** — runs compilers and test suites, self-correcting on failure\n4. **Handles blast radius** — traces API signature changes across the entire codebase\n\n---\n\n## Architecture\n\n```\n┌─────────────────────────────────────────────────────┐\n│                   CLI Orchestrator                   │\n│              (composes Goose as engine)              │\n├─────────────────────────────────────────────────────┤\n│            Context Distiller MCP Server              │\n│     (single distill_context tool — fetches both     │\n│      upstream PR intent & internal constraints,      │\n│      then LLM-distills into structured guidance)     │\n├─────────────────────────────────────────────────────┤\n│               Conflict Resolution Agent             │\n│         (semantic merge + self-correction)           │\n├─────────────────────────────────────────────────────┤\n│            Validation Loop (compile/test)            │\n├─────────────────────────────────────────────────────┤\n│          Blast Radius Analysis (ast-grep)            │\n└─────────────────────────────────────────────────────┘\n```\n\n### Key Design Decisions\n\n- **Goose as the engine** — We compose [Goose](https://github.com/block/goose) via a CLI wrapper rather than forking it, leveraging its native `bash` and file-editing tools while avoiding maintenance nightmares.\n\n- **Context Distiller MCP (LLM-in-the-Middle)** — A single `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira, then uses a fast LLM (Claude Haiku) to produce structured plaintext guidance with semantic anchors (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.\n\n- **AST-first code navigation** — Tree-sitter / `ast-grep` for structural, context-aware search-and-replace. This handles repository-wide API signature changes without booting a language server on broken mid-rebase code.\n\n---\n\n## How It Works\n\n```\ngit rebase upstream/main\n        │\n        ▼\n   ┌─ CONFLICT ──┐\n   │              │\n   ▼              ▼\n   distill_context(\n     ticket_id, repo,\n     pr_number,\n     conflicted_files\n   )\n          │\n          ▼\n   Structured guidance\n   ([INTENT], [MANDATORY_CONSTRAINTS],\n    [CONFLICT_GUIDANCE], [RISK_ASSESSMENT],\n    [RECOMMENDED_STRATEGY])\n          │\n          ▼\n   Semantic merge\n   (AI agent resolves\n    conflict using guidance)\n          │\n          ▼\n   Run compiler + tests\n          │\n     ┌────┴────┐\n     │ PASS?   │\n     ▼         ▼\n   Yes ──→  Continue rebase\n   No  ──→  Self-correct & retry (up to N attempts)\n```\n\n---\n\n## Quick Start\n\n### Prerequisites\n\n- Python 3.10+\n- Git\n- [Goose](https://github.com/block/goose) (AI agent engine)\n\n### Installation\n\n```bash\ngit clone https://github.com/sdfa66065-lang/convergeai.git\ncd convergeai\npython3 -m venv .venv\nsource .venv/bin/activate\npip install -r mcp/context_distiller/requirements.txt\n```\n\n### Configure Environment\n\nCopy the example env file and fill in your credentials:\n\n```bash\ncp mcp/context_distiller/.env.example .env\n# Edit .env with your JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN,\n# GITHUB_TOKEN, and ANTHROPIC_API_KEY\n```\n\n### Run with Goose\n\n```bash\nexport CONVERGEAI_ROOT=$(pwd)\ngoose session start --profile ai-maintainer\n```\n\nOr run headless with a prompt file:\n\n```bash\ngoose run --profile ai-maintainer --instructions \"$(cat prompt.md)\"\n```\n\n---\n\n## Project Structure\n\n```\nconvergeai/\n├── goose/\n│   └── ai-maintainer.yaml   # Goose profile for the AI Maintainer agent\n├── mcp/\n│   └── context_distiller/\n│       ├── server.py         # Context Distiller MCP server (stdio)\n│       ├── requirements.txt  # Python dependencies\n│       └── .env.example      # Environment variable template\n├── README.md\n└── LICENSE\n```\n\n---\n\n## Roadmap\n\n- [x] Phase 0 — Single-file context distiller workflow\n- [x] Phase 1 — Unified `distill_context` MCP tool (Jira + GitHub + LLM distillation)\n- [x] Phase 2 ([Supported by Goose](https://block.github.io/goose/docs/guides/recipes/session-recipes/)) — Validation loop (compile/test + self-correction)\n- [ ] Phase 3 — Blast radius analysis with `ast-grep`\n- [ ] Phase 4 — LSP-based pre-flight dependency mapping\n- [ ] Enterprise integrations (Jira, Linear, GitHub Enterprise)\n\n---\n\n## Contributing\n\nThis project is in active early development. If you're interested in contributing or have ideas for enterprise fork management, open an issue or reach out.\n\n---\n\n## License\n\nMIT",
+                "stderr": "",
+                "exit_code": 0
+              },
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_32010c14-48e9-4155-83af-7cf2157f152f",
+      "role": "assistant",
+      "created": 1775247007,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_014vggzuAYRXzHFhET5XPHR2",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "tree",
+              "arguments": {
+                "path": "/Users/sabrinayu/Documents/GitHub/convergeai",
+                "depth": 3
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "developer"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_12fcc0df-d3f7-4943-964e-bfed594a9460",
+      "role": "user",
+      "created": 1775247007,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_014vggzuAYRXzHFhET5XPHR2",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "goose/  [81]\n  ai-maintainer.yaml  [81]\nmcp/  [523]\n  context_distiller/  [423]\n    __pycache__/  [0]\n      server.cpython-311.pyc  [0]\n      server.cpython-313.pyc  [0]\n    __init__.py  [0]\n    requirements.txt  [3]\n    server.py  [420]\n  README.md  [100]\nLICENSE  [21]\nREADME.md  [176]\nconverge.sh  [25]\ntest_conflict.py  [10]\n",
+                  "annotations": {
+                    "priority": 0.0
+                  }
+                }
+              ],
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_ef7858e8-a00f-41fa-bdf5-771875c3af69",
+      "role": "assistant",
+      "created": 1775247009,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_014g1b33SrxYXZYU3C937viq",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "shell",
+              "arguments": {
+                "command": "cat /Users/sabrinayu/Documents/GitHub/convergeai/mcp/context_distiller/server.py"
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "developer"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_efa65e19-04d9-4b3d-be31-71902808e1b6",
+      "role": "user",
+      "created": 1775247009,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_014g1b33SrxYXZYU3C937viq",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "#!/usr/bin/env python3\n\"\"\"\nContext Distiller MCP Server (stdio-based)\n\nAn MCP server that provides tools for Goose to fetch upstream intent\n(from GitHub PRs) and internal constraints (from Jira tickets), then\nuses a fast LLM to distill both into structured, actionable context\nfor semantic conflict resolution.\n\"\"\"\n\nimport logging\nimport os\nimport sys\nfrom dataclasses import dataclass, field\nfrom typing import Any, Optional\n\nlogger = logging.getLogger(\"context-distiller\")\n\nimport anthropic\nimport httpx\nfrom mcp.server.lowlevel import Server\nfrom mcp.server.stdio import stdio_server\nfrom mcp.types import TextContent, Tool\n\n# ---------------------------------------------------------------------------\n# Configuration (from environment variables)\n# ---------------------------------------------------------------------------\nJIRA_BASE_URL = os.environ.get(\"JIRA_BASE_URL\", \"\")  # e.g. https://yourorg.atlassian.net\nJIRA_EMAIL = os.environ.get(\"JIRA_EMAIL\", \"\")\nJIRA_API_TOKEN = os.environ.get(\"JIRA_API_TOKEN\", \"\")\nGITHUB_TOKEN = os.environ.get(\"GITHUB_TOKEN\", \"\")\nANTHROPIC_API_KEY = os.environ.get(\"ANTHROPIC_API_KEY\", \"\")\n\nDISTILL_MODEL = os.environ.get(\"DISTILL_MODEL\", \"claude-haiku-4-5-20251001\")\n\n# ---------------------------------------------------------------------------\n# Data models\n# ---------------------------------------------------------------------------\n\n@dataclass\nclass JiraTicket:\n    key: str\n    summary: str\n    description: str\n    status: str\n    priority: str\n    labels: list[str] = field(default_factory=list)\n    acceptance_criteria: str = \"\"\n\n\n@dataclass\nclass PullRequest:\n    repo: str\n    pr_number: int\n    title: str\n    body: str\n    author: str\n    labels: list[str] = field(default_factory=list)\n    changed_files: list[str] = field(default_factory=list)\n\n\n@dataclass\nclass Commit:\n    repo: str\n    sha: str\n    message: str\n    author: str\n\n\n@dataclass\nclass DistilledContext:\n    analysis: str                    # full plaintext LLM output\n    jira_key: Optional[str] = None\n    pr_ref: Optional[str] = None\n    commit_ref: Optional[str] = None\n\n\n# ---------------------------------------------------------------------------\n# Jira client\n# ---------------------------------------------------------------------------\n\nasync def fetch_jira_ticket(ticket_id: str) -> JiraTicket:\n    \"\"\"Fetch a Jira ticket by its key (e.g. PROJ-101).\"\"\"\n    if not JIRA_BASE_URL or not JIRA_EMAIL or not JIRA_API_TOKEN:\n        raise ValueError(\n            \"JIRA_BASE_URL, JIRA_EMAIL, and JIRA_API_TOKEN must be set. \"\n            \"Export them as environment variables.\"\n        )\n\n    url = f\"{JIRA_BASE_URL}/rest/api/3/issue/{ticket_id}\"\n    auth = httpx.BasicAuth(JIRA_EMAIL, JIRA_API_TOKEN)\n\n    async with httpx.AsyncClient() as client:\n        resp = await client.get(url, auth=auth, headers={\"Accept\": \"application/json\"})\n        resp.raise_for_status()\n        data = resp.json()\n\n    fields = data.get(\"fields\", {})\n\n    # Jira description can be ADF (Atlassian Document Format) or plain text\n    raw_desc = fields.get(\"description\", \"\")\n    if isinstance(raw_desc, dict):\n        # Flatten ADF to plain text (simple extraction)\n        description = _flatten_adf(raw_desc)\n    else:\n        description = raw_desc or \"\"\n\n    # Try to extract acceptance criteria from a custom field or description\n    acceptance = \"\"\n    for key, val in fields.items():\n        if \"acceptance\" in key.lower() and isinstance(val, str):\n            acceptance = val\n            break\n\n    return JiraTicket(\n        key=data[\"key\"],\n        summary=fields.get(\"summary\", \"\"),\n        description=description,\n        status=fields.get(\"status\", {}).get(\"name\", \"\"),\n        priority=fields.get(\"priority\", {}).get(\"name\", \"\"),\n        labels=fields.get(\"labels\", []),\n        acceptance_criteria=acceptance,\n    )\n\n\ndef _flatten_adf(node: dict) -> str:\n    \"\"\"Recursively extract text from Atlassian Document Format.\"\"\"\n    if node.get(\"type\") == \"text\":\n        return node.get(\"text\", \"\")\n    parts = []\n    for child in node.get(\"content\", []):\n        parts.append(_flatten_adf(child))\n    return \" \".join(parts).strip()\n\n\n# ---------------------------------------------------------------------------\n# GitHub client\n# ---------------------------------------------------------------------------\n\nasync def fetch_pull_request(repo: str, pr_number: int) -> PullRequest:\n    \"\"\"Fetch a GitHub pull request. repo format: owner/repo\"\"\"\n    headers = {\"Accept\": \"application/vnd.github+json\"}\n    if GITHUB_TOKEN:\n        headers[\"Authorization\"] = f\"Bearer {GITHUB_TOKEN}\"\n\n    async with httpx.AsyncClient() as client:\n        # Fetch PR metadata\n        pr_url = f\"https://api.github.com/repos/{repo}/pulls/{pr_number}\"\n        resp = await client.get(pr_url, headers=headers)\n        resp.raise_for_status()\n        pr_data = resp.json()\n\n        # Fetch changed files\n        files_url = f\"{pr_url}/files\"\n        files_resp = await client.get(files_url, headers=headers)\n        files_resp.raise_for_status()\n        files_data = files_resp.json()\n\n    changed_files = [f[\"filename\"] for f in files_data[:100]]  # cap at 100\n    labels = [l[\"name\"] for l in pr_data.get(\"labels\", [])]\n\n    return PullRequest(\n        repo=repo,\n        pr_number=pr_number,\n        title=pr_data.get(\"title\", \"\"),\n        body=pr_data.get(\"body\", \"\") or \"\",\n        author=pr_data.get(\"user\", {}).get(\"login\", \"\"),\n        labels=labels,\n        changed_files=changed_files,\n    )\n\n\nasync def fetch_commit(repo: str, commit_sha: str) -> Commit:\n    \"\"\"Fetch a GitHub commit by SHA. repo format: owner/repo\"\"\"\n    headers = {\"Accept\": \"application/vnd.github+json\"}\n    if GITHUB_TOKEN:\n        headers[\"Authorization\"] = f\"Bearer {GITHUB_TOKEN}\"\n\n    url = f\"https://api.github.com/repos/{repo}/commits/{commit_sha}\"\n    async with httpx.AsyncClient() as client:\n        resp = await client.get(url, headers=headers)\n        resp.raise_for_status()\n        data = resp.json()\n\n    return Commit(\n        repo=repo,\n        sha=data[\"sha\"],\n        message=data.get(\"commit\", {}).get(\"message\", \"\"),\n        author=data.get(\"author\", {}).get(\"login\", \"\")\n               or data.get(\"commit\", {}).get(\"author\", {}).get(\"name\", \"\"),\n    )\n\n\n# ---------------------------------------------------------------------------\n# LLM distillation\n# ---------------------------------------------------------------------------\n\nDISTILL_SYSTEM_PROMPT = \"\"\"\\\nYou are an Expert Technical Analyst for an AI Enterprise Fork-Sync Engine. Your job is to analyze upstream PR changes and internal Jira constraints, then produce a highly structured, plaintext analysis that will guide an autonomous AI agent in resolving semantic merge conflicts.\n\nYou MUST return your analysis using the exact Markdown template provided. Be extremely precise and actionable. Use uppercase Semantic Anchors (like [INTENT] and [MANDATORY_CONSTRAINTS]) to guide the agent's attention. Do not use JSON. Never be vague.\\\n\"\"\"\n\nDISTILL_USER_TEMPLATE = \"\"\"\\\n## Cherrypick Context\n{pr_context}\n\n## Internal Ticket Constraints\n{jira_context}\n\n## Conflicted Files\n{conflicted_files}\n\n---\n\nProduce your analysis using EXACTLY the following Markdown structure. Do not output JSON or code fences. \n\n### [SOURCE]: Upstream vs. Internal Fork\n**[INTENT]**\n(One concise paragraph explaining exactly what the upstream change is trying to achieve architecturally.)\n\n**[MANDATORY_CONSTRAINTS]**\n- MUST: (Actionable business rule from the internal ticket that must be preserved)\n- MUST: (Another actionable rule, if applicable)\n- MUST NOT: (What the agent must not overwrite or delete to maintain compliance)\n\n**[CONFLICT_GUIDANCE]**\n(Specific instructions on how the agent should blend the new upstream architecture with the internal constraints for the conflicted files.)\n\n**[RISK_ASSESSMENT]**\n(What could silently go wrong if the merge is done incorrectly.)\n\n**[RECOMMENDED_STRATEGY]**\n[STRATEGY: BLEND | ACCEPT_UPSTREAM | KEEP_OURS | MANUAL_REVIEW] - (Provide a 1-sentence justification for this strategy.)\\\n\"\"\"\n\n\nasync def distill_context(\n    pr_info: Optional[PullRequest],\n    jira_info: Optional[JiraTicket],\n    commit_info: Optional[Commit] = None,\n    conflicted_files: list[str] | None = None,\n) -> DistilledContext:\n    \"\"\"Use a fast LLM to distill PR + Jira context into actionable merge guidance.\"\"\"\n    if not ANTHROPIC_API_KEY:\n        raise ValueError(\"ANTHROPIC_API_KEY must be set.\")\n\n    pr_context = \"No PR information provided.\"\n    if pr_info:\n        pr_context = (\n            f\"**{pr_info.title}** (#{pr_info.pr_number} in {pr_info.repo})\\n\"\n            f\"Author: {pr_info.author}\\n\"\n            f\"Labels: {', '.join(pr_info.labels) or 'none'}\\n\\n\"\n            f\"{pr_info.body}\\n\\n\"\n            f\"Changed files: {', '.join(pr_info.changed_files[:20])}\"\n        )\n    elif commit_info:\n        pr_context = (\n            f\"**Commit {commit_info.sha[:10]}** in {commit_info.repo}\\n\"\n            f\"Author: {commit_info.author}\\n\\n\"\n            f\"{commit_info.message}\"\n        )\n\n    jira_context = \"No Jira ticket provided.\"\n    if jira_info:\n        jira_context = (\n            f\"**{jira_info.key}: {jira_info.summary}**\\n\"\n            f\"Status: {jira_info.status} | Priority: {jira_info.priority}\\n\"\n            f\"Labels: {', '.join(jira_info.labels) or 'none'}\\n\\n\"\n            f\"{jira_info.description}\\n\\n\"\n        )\n        if jira_info.acceptance_criteria:\n            jira_context += f\"Acceptance Criteria:\\n{jira_info.acceptance_criteria}\"\n\n    files_str = \", \".join(conflicted_files) if conflicted_files else \"Not specified\"\n\n    user_msg = DISTILL_USER_TEMPLATE.format(\n        pr_context=pr_context,\n        jira_context=jira_context,\n        conflicted_files=files_str,\n    )\n\n    client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)\n    response = await client.messages.create(\n        model=DISTILL_MODEL,\n        max_tokens=4095,\n        system=DISTILL_SYSTEM_PROMPT,\n        messages=[{\"role\": \"user\", \"content\": user_msg}],\n    )\n\n    raw_text = response.content[0].text.strip()\n\n    return DistilledContext(\n        analysis=raw_text,\n        jira_key=jira_info.key if jira_info else None,\n        pr_ref=f\"{pr_info.repo}#{pr_info.pr_number}\" if pr_info else None,\n        commit_ref=f\"{commit_info.repo}@{commit_info.sha[:10]}\" if commit_info else None,\n    )\n\n\n# ---------------------------------------------------------------------------\n# MCP Server\n# ---------------------------------------------------------------------------\n\napp = Server(\"context-distiller\")\n\n\n@app.list_tools()\nasync def list_tools() -> list[Tool]:\n    return [\n        Tool(\n            name=\"distill_context\",\n            description=(\n                \"Single entry point for context distillation. Provide a Jira ticket \"\n                \"key and/or a GitHub PR reference (repo + pr_number) or a commit \"\n                \"SHA (repo + commit_sha). Internally fetches from Jira and GitHub \"\n                \"APIs, then uses a fast LLM to produce structured plaintext \"\n                \"merge-conflict guidance with semantic anchors: [INTENT], \"\n                \"[MANDATORY_CONSTRAINTS], [CONFLICT_GUIDANCE], [RISK_ASSESSMENT], \"\n                \"and [RECOMMENDED_STRATEGY].\"\n            ),\n            inputSchema={\n                \"type\": \"object\",\n                \"properties\": {\n                    \"ticket_id\": {\n                        \"type\": \"string\",\n                        \"description\": \"Jira ticket key (e.g. PROJ-101). Optional.\",\n                    },\n                    \"repo\": {\n                        \"type\": \"string\",\n                        \"description\": \"GitHub repo in owner/repo format. Optional.\",\n                    },\n                    \"pr_number\": {\n                        \"type\": \"integer\",\n                        \"description\": \"Pull request number. Required if repo is provided.\",\n                    },\n                    \"commit_sha\": {\n                        \"type\": \"string\",\n                        \"description\": (\n                            \"Git commit SHA. Use with repo as an alternative to \"\n                            \"repo+pr_number for upstream context.\"\n                        ),\n                    },\n                    \"conflicted_files\": {\n                        \"type\": \"array\",\n                        \"items\": {\"type\": \"string\"},\n                        \"description\": \"List of file paths with merge conflicts.\",\n                    },\n                },\n            },\n        ),\n    ]\n\n\n@app.call_tool()\nasync def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:\n    try:\n        if name == \"distill_context\":\n            # Fetch sources as needed\n            jira_info = None\n            pr_info = None\n            commit_info = None\n\n            ticket_id = arguments.get(\"ticket_id\")\n            repo = arguments.get(\"repo\")\n            pr_number = arguments.get(\"pr_number\")\n            commit_sha = arguments.get(\"commit_sha\")\n            conflicted_files = arguments.get(\"conflicted_files\", [])\n\n            if ticket_id:\n                jira_info = await fetch_jira_ticket(ticket_id)\n            else:\n                logger.warning(\"No ticket_id provided — distilling without internal constraints\")\n\n            if repo and pr_number:\n                pr_info = await fetch_pull_request(repo, pr_number)\n            elif repo and commit_sha:\n                commit_info = await fetch_commit(repo, commit_sha)\n            elif pr_number and not repo:\n                logger.warning(\"pr_number=%s provided without repo — skipping upstream PR fetch\", pr_number)\n            elif commit_sha and not repo:\n                logger.warning(\"commit_sha=%s provided without repo — skipping commit fetch\", commit_sha)\n            elif repo and not pr_number and not commit_sha:\n                logger.warning(\"repo=%s provided without pr_number or commit_sha — skipping upstream fetch\", repo)\n\n            if not jira_info and not pr_info and not commit_info:\n                return [TextContent(\n                    type=\"text\",\n                    text=\"Error: Provide at least a ticket_id, repo+pr_number, or repo+commit_sha.\",\n                )]\n\n            result = await distill_context(pr_info, jira_info, commit_info, conflicted_files)\n            output = result.analysis\n            if result.jira_key:\n                output += f\"\\n\\n---\\nJira: {result.jira_key}\"\n            if result.pr_ref:\n                output += f\"\\nPR: {result.pr_ref}\"\n            if result.commit_ref:\n                output += f\"\\nCommit: {result.commit_ref}\"\n            return [TextContent(type=\"text\", text=output)]\n\n        else:\n            return [TextContent(type=\"text\", text=f\"Error: Unknown tool: {name}\")]\n\n    except Exception as e:\n        return [TextContent(type=\"text\", text=f\"Error: {e}\")]\n\n\n# ---------------------------------------------------------------------------\n# Entry point\n# ---------------------------------------------------------------------------\n\nasync def main():\n    async with stdio_server() as (read_stream, write_stream):\n        await app.run(read_stream, write_stream, app.create_initialization_options())\n\n\nif __name__ == \"__main__\":\n    import asyncio\n    asyncio.run(main())",
+                  "annotations": {
+                    "priority": 0.0
+                  }
+                }
+              ],
+              "structuredContent": {
+                "stdout": "#!/usr/bin/env python3\n\"\"\"\nContext Distiller MCP Server (stdio-based)\n\nAn MCP server that provides tools for Goose to fetch upstream intent\n(from GitHub PRs) and internal constraints (from Jira tickets), then\nuses a fast LLM to distill both into structured, actionable context\nfor semantic conflict resolution.\n\"\"\"\n\nimport logging\nimport os\nimport sys\nfrom dataclasses import dataclass, field\nfrom typing import Any, Optional\n\nlogger = logging.getLogger(\"context-distiller\")\n\nimport anthropic\nimport httpx\nfrom mcp.server.lowlevel import Server\nfrom mcp.server.stdio import stdio_server\nfrom mcp.types import TextContent, Tool\n\n# ---------------------------------------------------------------------------\n# Configuration (from environment variables)\n# ---------------------------------------------------------------------------\nJIRA_BASE_URL = os.environ.get(\"JIRA_BASE_URL\", \"\")  # e.g. https://yourorg.atlassian.net\nJIRA_EMAIL = os.environ.get(\"JIRA_EMAIL\", \"\")\nJIRA_API_TOKEN = os.environ.get(\"JIRA_API_TOKEN\", \"\")\nGITHUB_TOKEN = os.environ.get(\"GITHUB_TOKEN\", \"\")\nANTHROPIC_API_KEY = os.environ.get(\"ANTHROPIC_API_KEY\", \"\")\n\nDISTILL_MODEL = os.environ.get(\"DISTILL_MODEL\", \"claude-haiku-4-5-20251001\")\n\n# ---------------------------------------------------------------------------\n# Data models\n# ---------------------------------------------------------------------------\n\n@dataclass\nclass JiraTicket:\n    key: str\n    summary: str\n    description: str\n    status: str\n    priority: str\n    labels: list[str] = field(default_factory=list)\n    acceptance_criteria: str = \"\"\n\n\n@dataclass\nclass PullRequest:\n    repo: str\n    pr_number: int\n    title: str\n    body: str\n    author: str\n    labels: list[str] = field(default_factory=list)\n    changed_files: list[str] = field(default_factory=list)\n\n\n@dataclass\nclass Commit:\n    repo: str\n    sha: str\n    message: str\n    author: str\n\n\n@dataclass\nclass DistilledContext:\n    analysis: str                    # full plaintext LLM output\n    jira_key: Optional[str] = None\n    pr_ref: Optional[str] = None\n    commit_ref: Optional[str] = None\n\n\n# ---------------------------------------------------------------------------\n# Jira client\n# ---------------------------------------------------------------------------\n\nasync def fetch_jira_ticket(ticket_id: str) -> JiraTicket:\n    \"\"\"Fetch a Jira ticket by its key (e.g. PROJ-101).\"\"\"\n    if not JIRA_BASE_URL or not JIRA_EMAIL or not JIRA_API_TOKEN:\n        raise ValueError(\n            \"JIRA_BASE_URL, JIRA_EMAIL, and JIRA_API_TOKEN must be set. \"\n            \"Export them as environment variables.\"\n        )\n\n    url = f\"{JIRA_BASE_URL}/rest/api/3/issue/{ticket_id}\"\n    auth = httpx.BasicAuth(JIRA_EMAIL, JIRA_API_TOKEN)\n\n    async with httpx.AsyncClient() as client:\n        resp = await client.get(url, auth=auth, headers={\"Accept\": \"application/json\"})\n        resp.raise_for_status()\n        data = resp.json()\n\n    fields = data.get(\"fields\", {})\n\n    # Jira description can be ADF (Atlassian Document Format) or plain text\n    raw_desc = fields.get(\"description\", \"\")\n    if isinstance(raw_desc, dict):\n        # Flatten ADF to plain text (simple extraction)\n        description = _flatten_adf(raw_desc)\n    else:\n        description = raw_desc or \"\"\n\n    # Try to extract acceptance criteria from a custom field or description\n    acceptance = \"\"\n    for key, val in fields.items():\n        if \"acceptance\" in key.lower() and isinstance(val, str):\n            acceptance = val\n            break\n\n    return JiraTicket(\n        key=data[\"key\"],\n        summary=fields.get(\"summary\", \"\"),\n        description=description,\n        status=fields.get(\"status\", {}).get(\"name\", \"\"),\n        priority=fields.get(\"priority\", {}).get(\"name\", \"\"),\n        labels=fields.get(\"labels\", []),\n        acceptance_criteria=acceptance,\n    )\n\n\ndef _flatten_adf(node: dict) -> str:\n    \"\"\"Recursively extract text from Atlassian Document Format.\"\"\"\n    if node.get(\"type\") == \"text\":\n        return node.get(\"text\", \"\")\n    parts = []\n    for child in node.get(\"content\", []):\n        parts.append(_flatten_adf(child))\n    return \" \".join(parts).strip()\n\n\n# ---------------------------------------------------------------------------\n# GitHub client\n# ---------------------------------------------------------------------------\n\nasync def fetch_pull_request(repo: str, pr_number: int) -> PullRequest:\n    \"\"\"Fetch a GitHub pull request. repo format: owner/repo\"\"\"\n    headers = {\"Accept\": \"application/vnd.github+json\"}\n    if GITHUB_TOKEN:\n        headers[\"Authorization\"] = f\"Bearer {GITHUB_TOKEN}\"\n\n    async with httpx.AsyncClient() as client:\n        # Fetch PR metadata\n        pr_url = f\"https://api.github.com/repos/{repo}/pulls/{pr_number}\"\n        resp = await client.get(pr_url, headers=headers)\n        resp.raise_for_status()\n        pr_data = resp.json()\n\n        # Fetch changed files\n        files_url = f\"{pr_url}/files\"\n        files_resp = await client.get(files_url, headers=headers)\n        files_resp.raise_for_status()\n        files_data = files_resp.json()\n\n    changed_files = [f[\"filename\"] for f in files_data[:100]]  # cap at 100\n    labels = [l[\"name\"] for l in pr_data.get(\"labels\", [])]\n\n    return PullRequest(\n        repo=repo,\n        pr_number=pr_number,\n        title=pr_data.get(\"title\", \"\"),\n        body=pr_data.get(\"body\", \"\") or \"\",\n        author=pr_data.get(\"user\", {}).get(\"login\", \"\"),\n        labels=labels,\n        changed_files=changed_files,\n    )\n\n\nasync def fetch_commit(repo: str, commit_sha: str) -> Commit:\n    \"\"\"Fetch a GitHub commit by SHA. repo format: owner/repo\"\"\"\n    headers = {\"Accept\": \"application/vnd.github+json\"}\n    if GITHUB_TOKEN:\n        headers[\"Authorization\"] = f\"Bearer {GITHUB_TOKEN}\"\n\n    url = f\"https://api.github.com/repos/{repo}/commits/{commit_sha}\"\n    async with httpx.AsyncClient() as client:\n        resp = await client.get(url, headers=headers)\n        resp.raise_for_status()\n        data = resp.json()\n\n    return Commit(\n        repo=repo,\n        sha=data[\"sha\"],\n        message=data.get(\"commit\", {}).get(\"message\", \"\"),\n        author=data.get(\"author\", {}).get(\"login\", \"\")\n               or data.get(\"commit\", {}).get(\"author\", {}).get(\"name\", \"\"),\n    )\n\n\n# ---------------------------------------------------------------------------\n# LLM distillation\n# ---------------------------------------------------------------------------\n\nDISTILL_SYSTEM_PROMPT = \"\"\"\\\nYou are an Expert Technical Analyst for an AI Enterprise Fork-Sync Engine. Your job is to analyze upstream PR changes and internal Jira constraints, then produce a highly structured, plaintext analysis that will guide an autonomous AI agent in resolving semantic merge conflicts.\n\nYou MUST return your analysis using the exact Markdown template provided. Be extremely precise and actionable. Use uppercase Semantic Anchors (like [INTENT] and [MANDATORY_CONSTRAINTS]) to guide the agent's attention. Do not use JSON. Never be vague.\\\n\"\"\"\n\nDISTILL_USER_TEMPLATE = \"\"\"\\\n## Cherrypick Context\n{pr_context}\n\n## Internal Ticket Constraints\n{jira_context}\n\n## Conflicted Files\n{conflicted_files}\n\n---\n\nProduce your analysis using EXACTLY the following Markdown structure. Do not output JSON or code fences. \n\n### [SOURCE]: Upstream vs. Internal Fork\n**[INTENT]**\n(One concise paragraph explaining exactly what the upstream change is trying to achieve architecturally.)\n\n**[MANDATORY_CONSTRAINTS]**\n- MUST: (Actionable business rule from the internal ticket that must be preserved)\n- MUST: (Another actionable rule, if applicable)\n- MUST NOT: (What the agent must not overwrite or delete to maintain compliance)\n\n**[CONFLICT_GUIDANCE]**\n(Specific instructions on how the agent should blend the new upstream architecture with the internal constraints for the conflicted files.)\n\n**[RISK_ASSESSMENT]**\n(What could silently go wrong if the merge is done incorrectly.)\n\n**[RECOMMENDED_STRATEGY]**\n[STRATEGY: BLEND | ACCEPT_UPSTREAM | KEEP_OURS | MANUAL_REVIEW] - (Provide a 1-sentence justification for this strategy.)\\\n\"\"\"\n\n\nasync def distill_context(\n    pr_info: Optional[PullRequest],\n    jira_info: Optional[JiraTicket],\n    commit_info: Optional[Commit] = None,\n    conflicted_files: list[str] | None = None,\n) -> DistilledContext:\n    \"\"\"Use a fast LLM to distill PR + Jira context into actionable merge guidance.\"\"\"\n    if not ANTHROPIC_API_KEY:\n        raise ValueError(\"ANTHROPIC_API_KEY must be set.\")\n\n    pr_context = \"No PR information provided.\"\n    if pr_info:\n        pr_context = (\n            f\"**{pr_info.title}** (#{pr_info.pr_number} in {pr_info.repo})\\n\"\n            f\"Author: {pr_info.author}\\n\"\n            f\"Labels: {', '.join(pr_info.labels) or 'none'}\\n\\n\"\n            f\"{pr_info.body}\\n\\n\"\n            f\"Changed files: {', '.join(pr_info.changed_files[:20])}\"\n        )\n    elif commit_info:\n        pr_context = (\n            f\"**Commit {commit_info.sha[:10]}** in {commit_info.repo}\\n\"\n            f\"Author: {commit_info.author}\\n\\n\"\n            f\"{commit_info.message}\"\n        )\n\n    jira_context = \"No Jira ticket provided.\"\n    if jira_info:\n        jira_context = (\n            f\"**{jira_info.key}: {jira_info.summary}**\\n\"\n            f\"Status: {jira_info.status} | Priority: {jira_info.priority}\\n\"\n            f\"Labels: {', '.join(jira_info.labels) or 'none'}\\n\\n\"\n            f\"{jira_info.description}\\n\\n\"\n        )\n        if jira_info.acceptance_criteria:\n            jira_context += f\"Acceptance Criteria:\\n{jira_info.acceptance_criteria}\"\n\n    files_str = \", \".join(conflicted_files) if conflicted_files else \"Not specified\"\n\n    user_msg = DISTILL_USER_TEMPLATE.format(\n        pr_context=pr_context,\n        jira_context=jira_context,\n        conflicted_files=files_str,\n    )\n\n    client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)\n    response = await client.messages.create(\n        model=DISTILL_MODEL,\n        max_tokens=4095,\n        system=DISTILL_SYSTEM_PROMPT,\n        messages=[{\"role\": \"user\", \"content\": user_msg}],\n    )\n\n    raw_text = response.content[0].text.strip()\n\n    return DistilledContext(\n        analysis=raw_text,\n        jira_key=jira_info.key if jira_info else None,\n        pr_ref=f\"{pr_info.repo}#{pr_info.pr_number}\" if pr_info else None,\n        commit_ref=f\"{commit_info.repo}@{commit_info.sha[:10]}\" if commit_info else None,\n    )\n\n\n# ---------------------------------------------------------------------------\n# MCP Server\n# ---------------------------------------------------------------------------\n\napp = Server(\"context-distiller\")\n\n\n@app.list_tools()\nasync def list_tools() -> list[Tool]:\n    return [\n        Tool(\n            name=\"distill_context\",\n            description=(\n                \"Single entry point for context distillation. Provide a Jira ticket \"\n                \"key and/or a GitHub PR reference (repo + pr_number) or a commit \"\n                \"SHA (repo + commit_sha). Internally fetches from Jira and GitHub \"\n                \"APIs, then uses a fast LLM to produce structured plaintext \"\n                \"merge-conflict guidance with semantic anchors: [INTENT], \"\n                \"[MANDATORY_CONSTRAINTS], [CONFLICT_GUIDANCE], [RISK_ASSESSMENT], \"\n                \"and [RECOMMENDED_STRATEGY].\"\n            ),\n            inputSchema={\n                \"type\": \"object\",\n                \"properties\": {\n                    \"ticket_id\": {\n                        \"type\": \"string\",\n                        \"description\": \"Jira ticket key (e.g. PROJ-101). Optional.\",\n                    },\n                    \"repo\": {\n                        \"type\": \"string\",\n                        \"description\": \"GitHub repo in owner/repo format. Optional.\",\n                    },\n                    \"pr_number\": {\n                        \"type\": \"integer\",\n                        \"description\": \"Pull request number. Required if repo is provided.\",\n                    },\n                    \"commit_sha\": {\n                        \"type\": \"string\",\n                        \"description\": (\n                            \"Git commit SHA. Use with repo as an alternative to \"\n                            \"repo+pr_number for upstream context.\"\n                        ),\n                    },\n                    \"conflicted_files\": {\n                        \"type\": \"array\",\n                        \"items\": {\"type\": \"string\"},\n                        \"description\": \"List of file paths with merge conflicts.\",\n                    },\n                },\n            },\n        ),\n    ]\n\n\n@app.call_tool()\nasync def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:\n    try:\n        if name == \"distill_context\":\n            # Fetch sources as needed\n            jira_info = None\n            pr_info = None\n            commit_info = None\n\n            ticket_id = arguments.get(\"ticket_id\")\n            repo = arguments.get(\"repo\")\n            pr_number = arguments.get(\"pr_number\")\n            commit_sha = arguments.get(\"commit_sha\")\n            conflicted_files = arguments.get(\"conflicted_files\", [])\n\n            if ticket_id:\n                jira_info = await fetch_jira_ticket(ticket_id)\n            else:\n                logger.warning(\"No ticket_id provided — distilling without internal constraints\")\n\n            if repo and pr_number:\n                pr_info = await fetch_pull_request(repo, pr_number)\n            elif repo and commit_sha:\n                commit_info = await fetch_commit(repo, commit_sha)\n            elif pr_number and not repo:\n                logger.warning(\"pr_number=%s provided without repo — skipping upstream PR fetch\", pr_number)\n            elif commit_sha and not repo:\n                logger.warning(\"commit_sha=%s provided without repo — skipping commit fetch\", commit_sha)\n            elif repo and not pr_number and not commit_sha:\n                logger.warning(\"repo=%s provided without pr_number or commit_sha — skipping upstream fetch\", repo)\n\n            if not jira_info and not pr_info and not commit_info:\n                return [TextContent(\n                    type=\"text\",\n                    text=\"Error: Provide at least a ticket_id, repo+pr_number, or repo+commit_sha.\",\n                )]\n\n            result = await distill_context(pr_info, jira_info, commit_info, conflicted_files)\n            output = result.analysis\n            if result.jira_key:\n                output += f\"\\n\\n---\\nJira: {result.jira_key}\"\n            if result.pr_ref:\n                output += f\"\\nPR: {result.pr_ref}\"\n            if result.commit_ref:\n                output += f\"\\nCommit: {result.commit_ref}\"\n            return [TextContent(type=\"text\", text=output)]\n\n        else:\n            return [TextContent(type=\"text\", text=f\"Error: Unknown tool: {name}\")]\n\n    except Exception as e:\n        return [TextContent(type=\"text\", text=f\"Error: {e}\")]\n\n\n# ---------------------------------------------------------------------------\n# Entry point\n# ---------------------------------------------------------------------------\n\nasync def main():\n    async with stdio_server() as (read_stream, write_stream):\n        await app.run(read_stream, write_stream, app.create_initialization_options())\n\n\nif __name__ == \"__main__\":\n    import asyncio\n    asyncio.run(main())",
+                "stderr": "",
+                "exit_code": 0
+              },
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_01GGbrkAm4ZCuDRCDzBejUPP",
+      "role": "assistant",
+      "created": 1775247029,
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "Now I understand the conflict well. Let me analyze what's happening:\n\n**HEAD (internal fork):**\n```python\ndef distill_context(ticket_id: str):\n    log_telemetry(\"distill_context_called\", ticket_id)\n    if cache.exists(ticket_id):\n        return cache.get(ticket_id)\n    return fetch_jira_payload(ticket_id)\n```\nThis is an older, simpler version that:\n- Takes only `ticket_id`\n- Logs telemetry\n- Checks a cache before fetching\n\n\n- Fetches from Jira only\n\n**upstream/main:**\n```python\ndef distill_context(target_ref: str):\n    return fetch_github_payload(target_ref)\n```\nThis is an upstream change that:\n- Changed the parameter name from `ticket_id` to `target_ref`\n- Removed telemetry logging\n- Removed cache check\n- Now fetches from GitHub instead of Jira\n\nBut looking at the actual implementation in `server.py`, the real `distill_context` function takes multiple parameters like `pr_info`, `jira_info`, `commit_info`, and `conflicted_files`, and it's pulling data from both Jira and GitHub with telemetry tracking still in place.\n\nThe conflict here shows a real design split—HEAD maintains the dual-source approach with caching and logging, while upstream wants to simplify to GitHub-only with a different parameter structure. The actual project design calls for blending both approaches: keeping the telemetry and cache optimization from HEAD while incorporating the GitHub payload fetching from upstream, and the function signature needs to handle both sources properly. The real implementation is also async with multiple parameters, which the upstream version doesn't account for. I see the issue now - the test file needs to handle both Jira and GitHub sources, but the function signatures conflict between the two versions. The right approach is to blend them: keep the telemetry and caching logic from HEAD, but modify the function to accept both `ticket_id` and `target_ref` parameters so it can fetch from both Jira and GitHub, then return both payloads together.",
+          "signature": "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"
+        },
+        {
+          "type": "text",
+          "text": "Now I have a clear picture. Let me analyze the conflict:\n\n- **HEAD (internal fork):** `distill_context(ticket_id)` — logs telemetry, checks cache, fetches from **Jira**\n- **upstream/main:** `distill_context(target_ref)` — fetches from **GitHub** only, no telemetry or caching\n\nLooking at the actual `server.py` implementation, this project is explicitly designed to fetch from **both** Jira *and* GitHub and blend them. The right resolution is to **blend** both sides: keep the internal telemetry + cache logic from HEAD, while also incorporating GitHub fetching from upstream, using both parameters."
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_d93b3c32-3c7f-4177-8b73-76191bcd4bbd",
+      "role": "assistant",
+      "created": 1775247032,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_015V99HkcvwmvRZ9GvaHf8gR",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "todo__todo_write",
+              "arguments": {
+                "content": "- [x] Read conflicted file (test_conflict.py)\n- [x] Read surrounding codebase (server.py, README) for semantic context\n- [ ] Resolve conflict by blending both sides:\n  - Keep telemetry logging (HEAD)\n  - Keep cache check (HEAD)\n  - Keep Jira fetch (HEAD)\n  - Add GitHub fetch (upstream/main)\n  - Accept both ticket_id and target_ref as parameters\n"
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "todo"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_51c0cfd0-62e1-4bf0-9532-d99217545149",
+      "role": "user",
+      "created": 1775247032,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_015V99HkcvwmvRZ9GvaHf8gR",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Updated (347 chars)"
+                }
+              ],
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_bbb4f0f7-2b99-4008-b7a2-0469c1c055c9",
+      "role": "assistant",
+      "created": 1775247035,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_01E1wjZrZXLFXYAnJpCrYctZ",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "write",
+              "arguments": {
+                "path": "/Users/sabrinayu/Documents/GitHub/convergeai/test_conflict.py",
+                "content": "def distill_context(ticket_id: str, target_ref: str):\n    log_telemetry(\"distill_context_called\", ticket_id)\n    if cache.exists(ticket_id):\n        return cache.get(ticket_id)\n    jira_payload = fetch_jira_payload(ticket_id)\n    github_payload = fetch_github_payload(target_ref)\n    return jira_payload, github_payload\n"
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "developer"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_2a1dc072-8230-47b3-8112-5f139faaab56",
+      "role": "user",
+      "created": 1775247035,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_01E1wjZrZXLFXYAnJpCrYctZ",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wrote /Users/sabrinayu/Documents/GitHub/convergeai/test_conflict.py (7 lines)",
+                  "annotations": {
+                    "priority": 0.0
+                  }
+                }
+              ],
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_ba3b9028-129e-4f03-b603-c0763a961e46",
+      "role": "assistant",
+      "created": 1775247037,
+      "content": [
+        {
+          "type": "toolRequest",
+          "id": "toolu_01SFgaPAXs6CwVNBshJJaT1s",
+          "toolCall": {
+            "status": "success",
+            "value": {
+              "name": "todo__todo_write",
+              "arguments": {
+                "content": "- [x] Read conflicted file (test_conflict.py)\n- [x] Read surrounding codebase (server.py, README) for semantic context\n- [x] Resolve conflict by blending both sides\n"
+              }
+            }
+          },
+          "_meta": {
+            "goose_extension": "todo"
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_f578315e-43e4-4cda-8912-74ccdf5e952b",
+      "role": "user",
+      "created": 1775247037,
+      "content": [
+        {
+          "type": "toolResponse",
+          "id": "toolu_01SFgaPAXs6CwVNBshJJaT1s",
+          "toolResult": {
+            "status": "success",
+            "value": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Updated (165 chars)"
+                }
+              ],
+              "isError": false
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    },
+    {
+      "id": "msg_014GWu4jYXen3KEzEestHVDd",
+      "role": "assistant",
+      "created": 1775247038,
+      "content": [
+        {
+          "type": "text",
+          "text": "The merge conflict in `test_conflict.py` has been resolved. Here's a summary of what was done:\n\n---\n\n### Conflict Analysis\n\n| Side | Signature | Behavior |\n|---|---|---|\n| **HEAD (internal fork)** | `distill_context(ticket_id)` | Logs telemetry, checks cache, fetches from **Jira** |\n| **upstream/main** | `distill_context(target_ref)` | Fetches from **GitHub** only — no telemetry or caching |\n\n### Resolution Strategy: **BLEND**\n\nBased on the broader codebase (`server.py` and `README.md`), this project is explicitly designed to fetch from **both Jira and GitHub** and synthesize them. Neither side alone is correct:\n- Dropping telemetry/caching would silently lose internal instrumentation.\n- Dropping GitHub fetching would break the upstream integration the project depends on.\n\n### Resolved Code\n\n```python\ndef distill_context(ticket_id: str, target_ref: str):\n    log_telemetry(\"distill_context_called\", ticket_id)\n    if cache.exists(ticket_id):\n        return cache.get(ticket_id)\n    jira_payload = fetch_jira_payload(ticket_id)\n    github_payload = fetch_github_payload(target_ref)\n    return jira_payload, github_payload\n```\n\nBoth `ticket_id` and `target_ref` are accepted, telemetry and caching are preserved, and both Jira and GitHub payloads are fetched and returned."
+        }
+      ],
+      "metadata": {
+        "userVisible": true,
+        "agentVisible": true
+      }
+    }
+  ],
+  "message_count": 22,
+  "provider_name": "anthropic",
+  "model_config": {
+    "model_name": "claude-sonnet-4-6",
+    "context_limit": 1000000,
+    "temperature": null,
+    "max_tokens": 64000,
+    "toolshim": false,
+    "toolshim_model": null,
+    "reasoning": true
+  },
+  "goose_mode": "auto"
+}
