@@ -50,7 +50,7 @@ ConvergeAI acts as an autonomous maintainer that:
 
 - **Goose as the engine** — We compose [Goose](https://github.com/block/goose) via a CLI wrapper rather than forking it, leveraging its native `bash` and file-editing tools while avoiding maintenance nightmares.
 
-- **Context Distiller MCP (LLM-in-the-Middle)** — A single `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira, then uses a fast LLM (Claude Haiku) to produce structured plaintext guidance with semantic anchors (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.
+- **Context Distiller MCP (LLM-in-the-Middle)** — A single `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira, then uses a fast LLM (`claude-haiku-4-5-20251001` by default, configurable via `DISTILL_MODEL`) to produce structured plaintext guidance with semantic anchors (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.
 
 - **AST-first code navigation** — Tree-sitter / `ast-grep` for structural, context-aware search-and-replace. This handles repository-wide API signature changes without booting a language server on broken mid-rebase code.
 
@@ -67,7 +67,7 @@ git rebase upstream/main
    ▼              ▼
    distill_context(
      ticket_id, repo,
-     pr_number,
+     pr_number | commit_sha,
      conflicted_files
    )
           │
@@ -102,6 +102,18 @@ One-command setup. The script installs Goose (via Homebrew), builds the Python e
 git clone https://github.com/sdfa66065-lang/convergeai.git
 cd convergeai
 
+See [`mcp/README.md`](mcp/README.md) for testing the MCP server (MCP Inspector, JSON-RPC, direct Python).
+
+### Configure Environment
+
+Copy the example env file and fill in your credentials:
+
+```bash
+cp mcp/context_distiller/.env.example .env
+# Edit .env with your JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN,
+# GITHUB_TOKEN, and ANTHROPIC_API_KEY
+```
+
 # Interactive setup (installs deps, prompts for keys)
 chmod +x setup.sh && ./setup.sh
 
@@ -113,6 +125,17 @@ Please call distill_context and resolve it."
 
 `setup.sh` is idempotent — run it again any time and it safely skips steps already completed.
 
+### Try the Demo
+
+The `demo/single_file_blending/test1/` directory contains a pre-built merge conflict (`test_conflict.py`) and recorded Goose session logs showing ConvergeAI resolving it. See [`demo/single_file_blending/test1/commands.md`](demo/single_file_blending/test1/commands.md) for the exact commands used.
+
+Two session exports are provided for comparison:
+
+- **With ConvergeAI MCP** — the agent uses `distill_context` to get structured guidance before resolving
+- **Without ConvergeAI** — native Goose resolves the same conflict without external context
+
+See [`demo/exporting_chat_history.md`](demo/exporting_chat_history.md) for how to export your own sessions.
+
 ---
 
 ## Project Structure
@@ -123,12 +146,16 @@ convergeai/
 ├── converge.sh               # CLI wrapper to run the AI Maintainer agent
 ├── .gitignore                # Protects .env secrets from being committed
 ├── goose/
-│   └── ai-maintainer.yaml   # Goose profile for the AI Maintainer agent
+│   └── ai-maintainer.yaml          # Goose profile for the AI Maintainer agent
 ├── mcp/
+│   ├── README.md                    # MCP server setup, testing, and usage docs
 │   └── context_distiller/
-│       ├── server.py         # Context Distiller MCP server (stdio)
-│       ├── requirements.txt  # Python dependencies
-│       └── .env.example      # Environment variable template
+│       ├── server.py                # Context Distiller MCP server (stdio)
+│       ├── requirements.txt         # Python dependencies
+│       └── .env.example             # Environment variable template
+├── demo/
+│   ├── exporting_chat_history.md    # Guide to exporting Goose session logs
+│   └── single_file_blending/test1/  # Working conflict example with session logs
 ├── README.md
 └── LICENSE
 ```

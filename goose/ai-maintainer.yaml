@@ -44,6 +44,7 @@ instructions: |
        - `ticket_id` — Jira ticket key (e.g. PROJ-101)
        - `repo` — GitHub repo in owner/repo format
        - `pr_number` — the upstream pull request number
+       - `commit_sha` — alternative to pr_number for cherry-pick workflows
        - `conflicted_files` — list of file paths with merge conflicts
      The tool fetches from Jira and GitHub, then uses a fast LLM to
      produce structured plaintext guidance.
