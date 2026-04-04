@@ -73,7 +73,7 @@ async def main():
     print(pr)
 
     # Test full distillation
-    result = await distill_context(pr, ticket, ["src/config.py"])
+    result = await distill_context(pr, ticket, conflicted_files=["src/config.py"])
     print(result)
 
 asyncio.run(main())

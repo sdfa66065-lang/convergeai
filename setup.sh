@@ -8,7 +8,7 @@
 #   1. Checks for Goose CLI (installs via Homebrew if missing)
 #   2. Creates a Python virtual environment and installs dependencies
 #   3. Securely prompts for API keys (hidden input)
-#   4. Writes secrets to mcp/context_distiller/.env
+#   4. Writes secrets to .env (project root)
 # ──────────────────────────────────────────────────────────────────────
 set -e
 
@@ -56,7 +56,7 @@ else
 fi
 
 # ─── 3. Configure Secrets ────────────────────────────────────────────
-ENV_FILE="mcp/context_distiller/.env"
+ENV_FILE="${SCRIPT_DIR}/.env"
 
 if [ -f "$ENV_FILE" ]; then
     echo "[3/4] API keys already configured ($ENV_FILE exists)."
