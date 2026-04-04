@@ -10,7 +10,6 @@ for semantic conflict resolution.
 
 import logging
 import os
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
@@ -39,6 +38,17 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 DISTILL_MODEL = os.environ.get("DISTILL_MODEL", "claude-haiku-4-5-20251001")
+
+_anthropic_client: Optional[anthropic.AsyncAnthropic] = None
+
+
+def _get_anthropic_client() -> anthropic.AsyncAnthropic:
+    global _anthropic_client
+    if _anthropic_client is None:
+        if not ANTHROPIC_API_KEY:
+            raise ValueError("ANTHROPIC_API_KEY must be set.")
+        _anthropic_client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+    return _anthropic_client
 
 # ---------------------------------------------------------------------------
 # Data models
@@ -163,8 +173,10 @@ async def fetch_pull_request(repo: str, pr_number: int) -> PullRequest:
         files_resp.raise_for_status()
         files_data = files_resp.json()
 
-    changed_files = [f["filename"] for f in files_data[:100]]  # cap at 100
-    labels = [l["name"] for l in pr_data.get("labels", [])]
+    if len(files_data) > 100:
+        logger.warning("PR has %d changed files; truncating to 100", len(files_data))
+    changed_files = [f["filename"] for f in files_data[:100]]
+    labels = [label["name"] for label in pr_data.get("labels", [])]
 
     return PullRequest(
         repo=repo,
@@ -249,9 +261,6 @@ async def distill_context(
     conflicted_files: list[str] | None = None,
 ) -> DistilledContext:
     """Use a fast LLM to distill PR + Jira context into actionable merge guidance."""
-    if not ANTHROPIC_API_KEY:
-        raise ValueError("ANTHROPIC_API_KEY must be set.")
-
     pr_context = "No PR information provided."
     if pr_info:
         pr_context = (
@@ -287,7 +296,7 @@ async def distill_context(
         conflicted_files=files_str,
     )
 
-    client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+    client = _get_anthropic_client()
     response = await client.messages.create(
         model=DISTILL_MODEL,
         max_tokens=4095,
@@ -295,6 +304,8 @@ async def distill_context(
         messages=[{"role": "user", "content": user_msg}],
     )
 
+    if not response.content or not hasattr(response.content[0], "text"):
+        raise ValueError(f"Unexpected LLM response shape: {response.content}")
     raw_text = response.content[0].text.strip()
 
     return DistilledContext(
