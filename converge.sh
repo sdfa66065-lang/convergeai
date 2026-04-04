@@ -13,7 +13,7 @@ set -e
 CONVERGEAI_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export CONVERGEAI_ROOT
 
-ENV_FILE="${CONVERGEAI_ROOT}/mcp/context_distiller/.env"
+ENV_FILE="${CONVERGEAI_ROOT}/.env"
 
 # ─── Preflight checks ────────────────────────────────────────────────
 
