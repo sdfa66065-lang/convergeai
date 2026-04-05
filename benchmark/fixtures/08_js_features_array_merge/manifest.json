@@ -1,0 +1,14 @@
+{
+  "name": "08_js_features_array_merge",
+  "description": "Both branches append different feature flags (scenario 7)",
+  "conflict_files": ["features.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": ["sso-saml", "dark-mode"],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in features.js. Include both sso-saml and dark-mode in activeFeatures. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in features.js. Merge the feature arrays so both SAML SSO and dark mode appear. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "array-merge", "scenario-7"]
+}

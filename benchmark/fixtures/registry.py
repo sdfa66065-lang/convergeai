@@ -24,6 +24,8 @@ class FixtureManifest:
     goose_prompt_experiment: str
     timeout_seconds: int
     tags: list[str] = field(default_factory=list)
+    #: If False, skip git unmerged-path check (e.g. clean rebase + logical breakage).
+    verify_git_conflicts: bool = True
 
     @classmethod
     def from_dir(cls, fixture_dir: Path) -> FixtureManifest:
@@ -41,6 +43,7 @@ class FixtureManifest:
             goose_prompt_experiment=data["goose_prompt_experiment"],
             timeout_seconds=data.get("timeout_seconds", 300),
             tags=data.get("tags", []),
+            verify_git_conflicts=data.get("verify_git_conflicts", True),
         )
 
 

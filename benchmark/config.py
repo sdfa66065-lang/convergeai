@@ -11,6 +11,8 @@ class BenchmarkConfig:
     fixtures_dir: Path
     temp_root: Path
     goose_binary: str = "goose"
+    converge_script: Path | None = None
+    instructions_yaml: Path | None = None
     goose_profile: str = "ai-maintainer"
     default_timeout: int = 300
     cleanup_sandboxes: bool = True
@@ -22,4 +24,6 @@ class BenchmarkConfig:
             repo_root=repo_root,
             fixtures_dir=repo_root / "benchmark" / "fixtures",
             temp_root=Path(tempfile.gettempdir()) / "convergeai-bench",
+            converge_script=repo_root / "converge.sh",
+            instructions_yaml=repo_root / "goose" / "ai-maintainer.yaml",
         )

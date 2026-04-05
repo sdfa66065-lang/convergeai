@@ -1,0 +1,20 @@
+{
+  "name": "02_js_auth_request_object",
+  "description": "Upstream switches auth to request objects; fork has QA bypass (scenario 1)",
+  "conflict_files": ["auth.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": [
+      "@internal.com",
+      "requestObject",
+      "user",
+      "pass",
+      "body"
+    ],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in auth.js. Merge upstream request-object auth with the fork QA bypass for @internal.com. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in auth.js. Resolve it so both upstream requestObject.body (user/pass) and the fork internal email bypass are preserved. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "auth", "parameter-rename", "scenario-1"]
+}
