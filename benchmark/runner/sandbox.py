@@ -31,7 +31,7 @@ class SandboxManager:
             ["bash", str(fixture.setup_script), str(sandbox_dir)],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=120,
         )
         if result.returncode != 0:
             raise FixtureSetupError(
@@ -39,7 +39,8 @@ class SandboxManager:
                 f"stdout: {result.stdout}\n"
                 f"stderr: {result.stderr}"
             )
-        self._verify_conflict_state(fixture, sandbox_dir)
+        if fixture.verify_git_conflicts:
+            self._verify_conflict_state(fixture, sandbox_dir)
 
     def _verify_conflict_state(
         self, fixture: FixtureManifest, sandbox_dir: Path

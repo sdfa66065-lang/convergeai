@@ -1,0 +1,14 @@
+{
+  "name": "04_js_config_retry_limit",
+  "description": "Fork renames variable; upstream bumps value (scenario 3)",
+  "conflict_files": ["config.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": ["retryLimit", "3"],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in config.js. Keep fork terminology retryLimit with upstream value 3. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in config.js. Blend retryLimit (fork) with the new retry count 3 (upstream). Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "rename", "scenario-3"]
+}
