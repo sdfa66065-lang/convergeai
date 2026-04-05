@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Shared fixture utilities — sourced by every setup.sh
 #
-# To port external scenarios (e.g. auth.js: internal-fork vs main): add a new
-# directory with manifest.json + setup.sh; call init_fixture_repo, then mirror
-# your git branch/commit steps. Use the same branch names as create_conflict()
-# (internal/fork, upstream/main) or fork this file with a custom rebase helper.
+# To port external scenarios (see context-distiller-mcp/conflict_scenario/*.sh):
+#   - Add benchmark/fixtures/<id>_<slug>/ with manifest.json + setup.sh
+#   - Replace "mkdir test-repo && cd" with: WORKDIR="${1:?...}"; init_fixture_repo "$WORKDIR"
+#   - Same rebase story as your scripts:
+#       * Python-style: internal/fork vs upstream/main → create_conflict
+#       * JS-style:     internal-fork vs main           → create_conflict_internal_fork
 set -euo pipefail
 
 init_fixture_repo() {
@@ -37,5 +39,19 @@ create_conflict() {
         exit 1
     fi
 
+    echo "CONFLICT CREATED: $(git diff --name-only --diff-filter=U | tr '\n' ' ')"
+}
+
+# Matches scenario_*.sh pattern: branch "internal-fork", upstream line on "main".
+create_conflict_internal_fork() {
+    git checkout --quiet internal-fork
+    if git rebase main 2>/dev/null; then
+        echo "ERROR: Expected conflict but rebase succeeded cleanly" >&2
+        exit 1
+    fi
+    if ! git diff --name-only --diff-filter=U | grep -q .; then
+        echo "ERROR: No conflicted files detected after rebase" >&2
+        exit 1
+    fi
     echo "CONFLICT CREATED: $(git diff --name-only --diff-filter=U | tr '\n' ' ')"
 }
