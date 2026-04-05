@@ -1,0 +1,16 @@
+{
+  "name": "03_js_logic_abc_merge",
+  "description": "Same-line adjacent edits: upstream a1bc vs fork ab2c (scenario 2)",
+  "conflict_files": ["logic.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": [
+      "a1b2c"
+    ],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in logic.js. Upstream return is a1bc, fork is ab2c. Merge to return the literal a1b2c. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in logic.js. Combine a1bc and ab2c into a1b2c in generateCode. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "same-region", "scenario-2"]
+}

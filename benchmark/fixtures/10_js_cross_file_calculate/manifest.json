@@ -1,0 +1,19 @@
+{
+  "name": "10_js_cross_file_calculate",
+  "description": "Rebase succeeds but caller still uses old positional API (scenario 9)",
+  "conflict_files": ["math.js", "enterprise-billing.js"],
+  "language": "javascript",
+  "verify_git_conflicts": false,
+  "semantic_checks": {
+    "must_contain": [
+      "calculate",
+      "options.a",
+      "options.b"
+    ],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "After an upstream refactor, math.js expects calculate({a,b}) but enterprise-billing.js still calls calculate(100, 50). Update enterprise-billing.js (and math.js if needed) so billing works with the new API. No conflict markers.",
+  "goose_prompt_experiment": "The repo rebased cleanly but enterprise-billing.js is incompatible with the new calculate(options) signature in math.js. Fix cross-file usage. No conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "cross-file", "scenario-9"]
+}

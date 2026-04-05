@@ -1,0 +1,14 @@
+{
+  "name": "07_js_index_imports_merge",
+  "description": "Competing top-of-file imports: logger vs customAuth (scenario 6)",
+  "conflict_files": ["index.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": ["logger", "customAuth", "helper"],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in index.js. Keep both upstream logger and fork customAuth.verify in run(). Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in index.js. Merge imports and run() so logging and enterprise auth both run. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "imports", "scenario-6"]
+}

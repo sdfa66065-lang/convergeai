@@ -1,0 +1,14 @@
+{
+  "name": "05_js_database_ssl_nested",
+  "description": "Upstream nests connection; fork added sslCert on flat object (scenario 4)",
+  "conflict_files": ["database.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": ["connection", "sslCert", "cert.pem"],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in database.js. Place sslCert inside the upstream connection object. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in database.js. Merge fork sslCert with upstream nested connection structure. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "structure", "scenario-4"]
+}

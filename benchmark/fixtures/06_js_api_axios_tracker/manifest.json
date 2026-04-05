@@ -1,0 +1,14 @@
+{
+  "name": "06_js_api_axios_tracker",
+  "description": "Upstream axios; fork internal tracker + fetch (scenario 5)",
+  "conflict_files": ["api.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": ["axios", "tracker", "getUser"],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in api.js. Use axios like upstream but keep fork tracker logging. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in api.js. Adopt axios and preserve tracker.log for internal telemetry. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "library-swap", "scenario-5"]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "09_js_network_proxy_refactor",
+  "description": "Upstream renames/replaces API; fork customized old function (scenario 8)",
+  "conflict_files": ["network.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": [
+      "performSecureRequest",
+      "internal-proxy.com"
+    ],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in network.js. Move fork proxy routing into performSecureRequest(requestData) using requestData.endpoint. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in network.js. Adopt upstream performSecureRequest while preserving corporate proxy behavior. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "api-replace", "scenario-8"]
+}

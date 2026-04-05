@@ -1,0 +1,18 @@
+{
+  "name": "11_js_cherrypick_server_port",
+  "description": "Early cherry-pick of beta + upstream rename causes rebase conflict (scenario 10)",
+  "conflict_files": ["server.js"],
+  "language": "javascript",
+  "semantic_checks": {
+    "must_contain": [
+      "process.env.PORT",
+      "isSecureMode",
+      "fork: smoke test"
+    ],
+    "must_not_contain": ["<<<<<<<", "=======", ">>>>>>>"]
+  },
+  "goose_prompt_control": "There is a merge conflict in server.js during rebase. Merge env-based port, upstream isSecureMode naming, and the fork diagnostic console.log. Do not leave conflict markers.",
+  "goose_prompt_experiment": "There is a merge conflict in server.js. Preserve PORT handling, adopt isSecureMode, and keep fork logging. Do not leave conflict markers.",
+  "timeout_seconds": 300,
+  "tags": ["javascript", "cherry-pick", "rebase", "scenario-10"]
+}
