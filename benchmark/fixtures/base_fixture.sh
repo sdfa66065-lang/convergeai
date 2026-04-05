@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # Shared fixture utilities — sourced by every setup.sh
+#
+# To port external scenarios (e.g. auth.js: internal-fork vs main): add a new
+# directory with manifest.json + setup.sh; call init_fixture_repo, then mirror
+# your git branch/commit steps. Use the same branch names as create_conflict()
+# (internal/fork, upstream/main) or fork this file with a custom rebase helper.
 set -euo pipefail
 
 init_fixture_repo() {
