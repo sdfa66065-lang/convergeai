@@ -26,7 +26,7 @@ echo ""
 if ! command -v goose &> /dev/null; then
     echo "[1/4] Goose CLI not found. Installing..."
     if command -v brew &> /dev/null; then
-        brew install block/tap/goose
+        brew install block-goose-cli
         echo "  -> Goose installed successfully."
     else
         echo "  ERROR: Homebrew not found."
