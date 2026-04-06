@@ -29,15 +29,17 @@ ConvergeAI acts as an autonomous maintainer that:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   CLI Orchestrator                   │
-│              (composes Goose as engine)              │
+│                 Integration Layer                    │
+│     GitHub Action · VS Code Extension · CLI          │
+├─────────────────────────────────────────────────────┤
+│               Orchestration Engine                   │
+│        (coordinates agents + MCP tools)              │
 ├─────────────────────────────────────────────────────┤
 │            Context Distiller MCP Server              │
-│     (single distill_context tool — fetches both     │
-│      upstream PR intent & internal constraints,      │
-│      then LLM-distills into structured guidance)     │
+│     (fetches upstream PR intent & internal           │
+│      constraints, LLM-distills into guidance)        │
 ├─────────────────────────────────────────────────────┤
-│               Conflict Resolution Agent             │
+│             Conflict Resolution Agent                │
 │         (semantic merge + self-correction)           │
 ├─────────────────────────────────────────────────────┤
 │            Validation Loop (compile/test)            │
@@ -59,12 +61,15 @@ ConvergeAI acts as an autonomous maintainer that:
 ## How It Works
 
 ```
-git rebase upstream/main
-        │
-        ▼
-   ┌─ CONFLICT ──┐
-   │              │
-   ▼              ▼
+GitHub Action / VS Code / CLI
+          │
+          ▼
+   git rebase upstream/main
+          │
+          ▼
+     ┌─ CONFLICT ──┐
+     │              │
+     ▼              ▼
    distill_context(
      ticket_id, repo,
      pr_number | commit_sha,
@@ -76,6 +81,11 @@ git rebase upstream/main
    ([INTENT], [MANDATORY_CONSTRAINTS],
     [CONFLICT_GUIDANCE], [RISK_ASSESSMENT],
     [RECOMMENDED_STRATEGY])
+          │
+          ▼
+   Blast radius scan
+   (ast-grep traces API
+    changes across codebase)
           │
           ▼
    Semantic merge
