@@ -21,7 +21,7 @@ ConvergeAI acts as an autonomous maintainer that:
 1. **Understands both sides** — fetches upstream PR intent *and* internal ticket constraints
 2. **Resolves semantically** — blends new upstream architecture with required business rules
 3. **Validates automatically** — runs compilers and test suites, self-correcting on failure
-4. **Handles blast radius** — traces API signature changes across the entire codebase
+4. **Handles blast radius** *(planned)* — traces API signature changes across the entire codebase
 
 ---
 
@@ -30,10 +30,10 @@ ConvergeAI acts as an autonomous maintainer that:
 ```
 ┌─────────────────────────────────────────────────────┐
 │                 Integration Layer                    │
-│     GitHub Action · VS Code Extension · CLI          │
+│   CLI (today) · GitHub Action · VS Code (planned)    │
 ├─────────────────────────────────────────────────────┤
 │               Orchestration Engine                   │
-│        (coordinates agents + MCP tools)              │
+│    Currently Goose — designed to be engine-agnostic  │
 ├─────────────────────────────────────────────────────┤
 │            Context Distiller MCP Server              │
 │     (fetches upstream PR intent & internal           │
@@ -44,24 +44,24 @@ ConvergeAI acts as an autonomous maintainer that:
 ├─────────────────────────────────────────────────────┤
 │            Validation Loop (compile/test)            │
 ├─────────────────────────────────────────────────────┤
-│          Blast Radius Analysis (ast-grep)            │
+│        Blast Radius Analysis (ast-grep) [planned]    │
 └─────────────────────────────────────────────────────┘
 ```
 
 ### Key Design Decisions
 
-- **Goose as the engine** — We compose [Goose](https://github.com/block/goose) via a CLI wrapper rather than forking it, leveraging its native `bash` and file-editing tools while avoiding maintenance nightmares.
+- **Engine-agnostic design, currently powered by Goose** — Today we compose [Goose](https://github.com/block/goose) via a CLI wrapper, leveraging its native `bash` and file-editing tools. The architecture is designed to be engine-agnostic — the MCP-based context distiller and conflict resolution logic are decoupled from the orchestration engine, so swapping in a different agent runtime requires only a new adapter.
 
 - **Context Distiller MCP (LLM-in-the-Middle)** — A single `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira, then uses a fast LLM (`claude-haiku-4-5-20251001` by default, configurable via `DISTILL_MODEL`) to produce structured plaintext guidance with semantic anchors (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.
 
-- **AST-first code navigation** — Tree-sitter / `ast-grep` for structural, context-aware search-and-replace. This handles repository-wide API signature changes without booting a language server on broken mid-rebase code.
+- **AST-first code navigation** *(planned)* — Tree-sitter / `ast-grep` for structural, context-aware search-and-replace. This will handle repository-wide API signature changes without booting a language server on broken mid-rebase code.
 
 ---
 
 ## How It Works
 
 ```
-GitHub Action / VS Code / CLI
+   ./converge.sh "<prompt>"
           │
           ▼
    git rebase upstream/main
@@ -81,11 +81,6 @@ GitHub Action / VS Code / CLI
    ([INTENT], [MANDATORY_CONSTRAINTS],
     [CONFLICT_GUIDANCE], [RISK_ASSESSMENT],
     [RECOMMENDED_STRATEGY])
-          │
-          ▼
-   Blast radius scan
-   (ast-grep traces API
-    changes across codebase)
           │
           ▼
    Semantic merge
