@@ -168,12 +168,14 @@ convergeai/
 
 ## Roadmap
 
-- [x] Phase 0 — Single-file context distiller workflow
-- [x] Phase 1 — Unified `distill_context` MCP tool (Jira + GitHub + LLM distillation)
-- [x] Phase 2 ([Supported by Goose](https://block.github.io/goose/docs/guides/recipes/session-recipes/)) — Validation loop (compile/test + self-correction)
-- [ ] Phase 3 — Blast radius analysis with `ast-grep`
-- [ ] Phase 4 — LSP-based pre-flight dependency mapping
-- [ ] Enterprise integrations (Jira, Linear, GitHub Enterprise)
+| Date | Phase | Milestone |
+|------|-------|-----------|
+| Apr 2026 | Phase 1 | 8-10 benchmark fixtures + published results |
+| May 2026 | Phase 2 | MCP registry listing + GitHub Action beta |
+| Jun 2026 | Phase 2 | VS Code extension + Cursor/Claude Code examples |
+| Jul 2026 | Phase 3 | HN launch + community seeding · Linear + GitLab integrations live |
+| Aug 2026 | Phase 3 | Blast radius analysis (ast-grep) shipped · 3+ enterprise design partners onboarded |
+| Sep 2026 | Phase 4 | Paid tier launched or acquisition conversations started · 50+ WAU, revenue or LOI |
 
 ---
 
