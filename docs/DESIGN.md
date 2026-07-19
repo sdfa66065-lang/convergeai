@@ -179,7 +179,7 @@ An evolution of the existing Context Distiller ([mcp/context_distiller/server.py
 
 | Tool | Kind | Description |
 |------|------|-------------|
-| `get_internal_context(conflicted_files)` | pure retrieval | Match conflicted paths against `manifest.yaml` `touches.files` globs; return the relevant patches — rationale, constraints, owner, tickets — formatted under the existing `[MANDATORY_CONSTRAINTS]` anchor. No LLM call. |
+| `get_internal_context(conflicted_files, ticket_ids?)` | pure retrieval | Match conflicted paths against `manifest.yaml` `touches.files` globs; return the relevant patches — rationale, constraints, owner, tickets — formatted under the existing `[MANDATORY_CONSTRAINTS]` anchor. Optional `ticket_ids` adds explicit Jira tickets to the result (and is the sole constraint source in manifest-less fallback, §4.3). No LLM call. |
 | `fetch_upstream_context(repo, pr_number \| commit_sha)` | pure retrieval | Raw PR / commit / linked-ticket metadata via the existing GitHub/Jira clients. No LLM call; the agent does its own intent analysis. |
 | `get_sync_status()` | ledger read | Current sync run, last synced SHA, pending/conflicted commit counts, active session if any. |
 | `record_resolution(sha, strategy, patches, notes)` | ledger write | Append the outcome of a resolution to `ledger.yaml`. The framework CLI also calls this; exposing it as a tool lets the agent self-report in supervised flows. |
@@ -192,7 +192,7 @@ Today's `distill_context` bundles three things: retrieval of upstream metadata, 
 ### 4.3 Compatibility
 
 - `distill_context` keeps its exact input schema and output format — existing Goose profiles and demo sessions keep working.
-- New tools fail soft when no `.convergeai/` directory exists (`get_internal_context` falls back to Jira-only retrieval), so the server remains useful on forks that haven't adopted the manifest yet.
+- New tools fail soft when no `.convergeai/` directory exists: `get_internal_context` falls back to fetching the caller-supplied `ticket_ids` from Jira (the same explicit-key path the current `distill_context` uses — there is no manifest to infer tickets from), and returns an empty constraints block with a "no manifest found" notice when no `ticket_ids` are given either. The server thus remains useful on forks that haven't adopted the manifest yet, without silently dropping internal constraints.
 
 ---
 
@@ -296,7 +296,7 @@ One binary, `converge`, installed by pipx/Homebrew (Oct). Today's [converge.sh](
 | `converge status` | Ledger + session summary: current run, processed/pending/conflicted counts, last synced SHA. |
 | `converge review` | List `conflicted` entries with their generated summaries; `--open` jumps to the sync PR comment. |
 
-Global: `--agent goose\|claude-code` (or `CONVERGEAI_AGENT`) selects the adapter (§6.2); `--repo-root` defaults to cwd. Exit codes: `0` all units clean, `1` completed with `conflicted` entries remaining, `2` framework error. Everything the CLI knows it reads from `.convergeai/` + `.git/convergeai/` — no hidden state, so the Action (§10) and a laptop can hand a sync run back and forth through git alone.
+Global: `--agent goose\|claude-code` (or `CONVERGEAI_AGENT`) selects the adapter (§6.2); `--repo-root` defaults to cwd; `--ticket <id>` (repeatable) forwards Jira ticket keys into `get_internal_context` — the constraint source for manifest-less forks (§4.3). Exit codes: `0` all units clean, `1` completed with `conflicted` entries remaining, `2` framework error. Everything the CLI knows it reads from `.convergeai/` + `.git/convergeai/` — no hidden state, so the Action (§10) and a laptop can hand a sync run back and forth through git alone.
 
 ## 10. GitHub Action (Oct)
 
