@@ -1,7 +1,7 @@
 # ConvergeAI Framework Design
 
-**Status:** Draft v1 · July 2026
-**Scope:** Full framework architecture. Phase 1 components (fork state model, fork-state MCP server) are specified in implementation-ready detail; later components are sketched and will be refined in follow-up docs as they enter their roadmap phase.
+**Status:** Draft v2 · July 2026
+**Scope:** Complete framework architecture — every component through the Jan 2027 roadmap horizon is designed here. Phase 1 components (fork state model, fork-state MCP server) are frozen-schema, implementation-ready; later components are designed to the level needed to start their phase without a new doc, and may gain addenda as implementation teaches us things. Section §13 maps every component to its roadmap phase.
 
 ---
 
@@ -196,61 +196,159 @@ Today's `distill_context` bundles three things: retrieval of upstream metadata, 
 
 ---
 
-## 5. Work decomposition (sketch — Phase 1/Sep)
+## 5. Work decomposition (Sep)
 
-Input: the upstream commit range for a sync run. Output: an ordered list of rebase units.
+Input: the upstream commit range for a sync run (`last_synced_sha..target_sha`). Output: an ordered list of rebase units written to the session file before any resolution starts, so the whole plan is inspectable via `converge plan` before execution.
 
-- **Clustering:** group commits by file-overlap (union-find on touched paths), keeping each unit under a size budget. Commits touching manifest-matched paths get their patch ids attached up front.
-- **Ordering:** topological by commit order within upstream; units that touch no manifest paths are scheduled first (cheap wins, early validation signal).
-- **Checkpointing:** after each unit passes validation gates, the framework commits the resolutions, updates the ledger, and snapshots the session. Interrupting at any point loses at most one unit of work.
-- **Resume:** `converge resume <session-id>` replays from the last checkpoint using the session file; if the session file is missing, it reconstructs position from the ledger.
+### 5.1 Algorithm
 
-Open question for the Sep design pass: whether clustering should also consult upstream PR groupings (commits from one PR stay in one unit) — likely yes, using `fetch_upstream_context`.
+1. **Annotate** — for each upstream commit, list touched paths (`git diff-tree`); match paths against manifest `touches.files` globs and attach patch ids.
+2. **Group by upstream PR** — commits that landed in one upstream PR (via `fetch_upstream_context` merge-commit lookup, falling back to `(#\d+)` message parsing) stay in one unit; a PR is upstream's own statement that these commits are one logical change.
+3. **Cluster** — union-find on touched paths merges PR-groups that overlap on files, subject to a unit size budget (default 15 commits; configurable). Oversized clusters split at PR boundaries, never inside one.
+4. **Order** — units execute in upstream commit order (correctness requires it — later commits may depend on earlier ones); within the plan, units touching no manifest paths are flagged `low-risk` so status output shows early signal, but they are not reordered.
 
-## 6. Agent interface (sketch + Phase 1 proof)
+### 5.2 Checkpointing and resume
+
+- After each unit passes validation gates: resolutions are committed, `ledger.yaml` is updated and committed, and the session file snapshots position. An interruption loses at most one unit of work.
+- `converge resume` continues from the last checkpoint; with the session file missing, position is reconstructed from the ledger (last `processed` sha) plus `git status`. The session file is convenience, never the source of truth.
+- A unit that exhausts its attempt budget is marked `conflicted` in the ledger; the run continues with the next unit unless the failed unit's files overlap a later unit (then the run pauses for review, since continuing would compound a bad base).
+
+## 6. Agent interface (Phase 1 proof: Aug · full adapters: Sep)
 
 ### 6.1 Prompt contract
 
-The framework injects, per conflict:
+The framework injects, per unit, an engine-neutral prompt assembled from a template:
 
-1. The conflict inventory (files, markers present, upstream SHA being applied)
-2. `get_internal_context` output — patches + constraints (the invisible half)
-3. A pointer to `fetch_upstream_context` for the visible half (the agent decides whether to call it)
-4. The validation command(s) the resolution must pass and the attempt budget
+```
+You are resolving merge conflicts for a maintained fork.
 
-The agent owns everything else: intent analysis, resolution, and iteration on failures. The contract is engine-neutral text + MCP tools; no engine-specific instructions.
+[CONFLICT_INVENTORY]
+Applying upstream {sha} ({upstream_repo}). Conflicted files: {files}
 
-### 6.2 Adapters
+[MANDATORY_CONSTRAINTS]
+{output of get_internal_context(files)}
 
-- **Goose (today):** [converge.sh](../converge.sh) + [goose/ai-maintainer.yaml](../goose/ai-maintainer.yaml), unchanged in behavior.
-- **Claude Code (Phase 1 proof):** headless invocation (`claude -p`) with the fork-state server registered via MCP config. The **Phase 1 exit test** is Claude Code resolving an existing benchmark fixture end-to-end using `get_internal_context` (manifest-backed) instead of `distill_context`.
-- Cursor and others follow the same shape: register the MCP server, pass the prompt contract.
+[UPSTREAM_CONTEXT]
+Call fetch_upstream_context(repo="{upstream_repo}", commit_sha="{sha}")
+if you need the upstream rationale; you may also inspect the diff directly.
 
-## 7. Validation gates (sketch — Sep)
+[VALIDATION]
+Your resolution must pass: {gate_commands}
+You have {attempts_remaining} attempts. On failure you will receive the
+gate output and should revise.
 
-Reuses the gate concepts already built in the benchmark grader ([benchmark/grader/](../benchmark/grader/)):
+[REPORTING]
+When done, call record_resolution(sha, strategy, patches, notes).
+```
 
-1. **Syntax gate** — no conflict markers, parse/compile passes
-2. **Behavioral gate** — the fork's test suite (or fixture tests) passes
-3. **Constraint gate** *(new)* — `must_not_contain`-style checks generated from manifest constraints where they're mechanically checkable
+The agent owns intent analysis, resolution, and iteration. Nothing in the contract is engine-specific; the anchors reuse the vocabulary agents already see from `distill_context`.
 
-Failures feed back to the agent with the gate output, up to the attempt budget; exhausted budgets or `MANUAL_REVIEW` strategies land in the review queue (v1: a `conflicted` ledger entry + generated summary comment on the sync PR; richer queue tooling later).
+### 6.2 Adapter contract
+
+An adapter is a small shim responsible for exactly four things: (1) register the fork-state MCP server with the engine, (2) submit the prompt, (3) surface the engine's transcript to the session log, (4) map engine exit to `resolved | failed | timeout`. Adapters live in `adapters/<engine>/` and are selected by `--agent` or `CONVERGEAI_AGENT`.
+
+- **Goose (today):** [converge.sh](../converge.sh) + [goose/ai-maintainer.yaml](../goose/ai-maintainer.yaml), refactored into `adapters/goose/` with unchanged behavior.
+- **Claude Code (Phase 1 proof):** headless `claude -p "<prompt>" --mcp-config adapters/claude-code/mcp.json --permission-mode acceptEdits`, working directory = the rebase checkout. The **Phase 1 exit test** is Claude Code resolving an existing benchmark fixture end-to-end using `get_internal_context` (manifest-backed) instead of `distill_context`.
+- **Cursor / others:** same shape — register MCP server, pass prompt. Added when demand appears; the contract is the spec.
+
+## 7. Validation gates (Sep)
+
+A gate pipeline runs after each unit's resolution, configured in `.convergeai/gates.yaml` (defaults shown):
+
+```yaml
+schema_version: 1
+attempt_budget: 3
+gates:
+  - name: syntax        # built-in: no conflict markers; parse/compile check per language
+  - name: constraints   # built-in: mechanical checks derived from manifest constraints
+  - name: tests
+    command: npm test   # fork-defined; any command, non-zero exit = fail
+    timeout_seconds: 600
+```
+
+1. **Syntax gate** — no conflict markers anywhere; parse/compile passes (per-language check, reusing the benchmark grader's syntax gate — [benchmark/grader/syntax_gate.py](../benchmark/grader/syntax_gate.py)).
+2. **Constraint gate** — mechanically checkable manifest constraints, compiled at plan time: `MUST_NOT` rules with a `pattern:` field become must-not-match greps/ast-grep queries over resolved files; constraints without patterns are prompt-only. (Manifest schema addition: optional `pattern` per constraint.)
+3. **Test gate** — the fork's own command (benchmark fixtures: the behavioral gate — [benchmark/grader/behavioral_gate.py](../benchmark/grader/behavioral_gate.py)).
+
+Failure output feeds back to the agent verbatim, up to `attempt_budget`. Exhausted budgets or agent-chosen `MANUAL_REVIEW` land in the review flow: ledger entry `conflicted`, a generated summary (what was attempted, which gate failed, relevant constraints) posted as a comment on the sync PR. Richer queue tooling waits for design-partner feedback (Dec).
 
 ## 8. Eval harness (existing, extended — Sep)
 
-The benchmark's control/experiment track machinery ([benchmark/runner/orchestrator.py](../benchmark/runner/orchestrator.py)) generalizes to a matrix: **agent (Goose, Claude Code, …) × context mode (none, raw retrieval, distilled, manifest-backed)**. Fixture manifests gain optional `.convergeai/` state so manifest-backed runs are testable. The Sep milestone publishes this matrix — it is both the launch credibility artifact and the ongoing regression suite for every design claim in this doc.
+The benchmark's control/experiment track machinery ([benchmark/runner/orchestrator.py](../benchmark/runner/orchestrator.py)) generalizes from two tracks to a matrix:
+
+- **Agent axis:** Goose, Claude Code (others as adapters land)
+- **Context-mode axis:** `none` (agent alone — today's control), `raw` (retrieval tools only), `distilled` (today's experiment), `manifest` (manifest-backed `get_internal_context`)
+
+Mechanics: `Track` ([benchmark/runner/track.py](../benchmark/runner/track.py)) becomes a `(agent, context_mode)` pair; fixtures gain an optional `.convergeai/` directory (manifest + ledger seeded by `setup.sh`) so manifest-backed cells are testable; per-fixture prompts stay in the fixture manifest as today. The published artifact is a pass-rate table over `runs=N` repetitions per cell (reusing `BenchmarkOrchestrator.run_all(runs=N)`), with per-fixture gate breakdowns and session transcripts linked. This matrix is both the launch credibility artifact and the ongoing regression suite for every design claim in this doc — including the empirical answer to "when does distillation still pay?" (§12).
 
 ---
 
-## 9. Failure modes & open questions
+## 9. CLI specification (Sep–Oct)
+
+One binary, `converge`, installed by pipx/Homebrew (Oct). Today's [converge.sh](../converge.sh) becomes a thin legacy entry point delegating to `converge run`.
+
+| Command | Does |
+|---------|------|
+| `convergeai init [--refresh]` | Diff fork vs. upstream, cluster differences, draft (or propose updates to) `manifest.yaml` with agent assistance; human lands it via PR (§3.4). |
+| `converge plan [<range>]` | Decompose `last_synced_sha..<range or upstream HEAD>` into rebase units (§5), write the session plan, print it. No execution. |
+| `converge run [--units N] [--dry-run]` | Execute the plan: per unit, invoke the agent adapter, run gates, checkpoint. `--units` bounds work per invocation (the Action's time-budget lever); `--dry-run` prints prompts without invoking the agent. |
+| `converge resume [<session-id>]` | Continue from the last checkpoint; reconstructs position from the ledger if the session file is gone (§5.2). |
+| `converge status` | Ledger + session summary: current run, processed/pending/conflicted counts, last synced SHA. |
+| `converge review` | List `conflicted` entries with their generated summaries; `--open` jumps to the sync PR comment. |
+
+Global: `--agent goose\|claude-code` (or `CONVERGEAI_AGENT`) selects the adapter (§6.2); `--repo-root` defaults to cwd. Exit codes: `0` all units clean, `1` completed with `conflicted` entries remaining, `2` framework error. Everything the CLI knows it reads from `.convergeai/` + `.git/convergeai/` — no hidden state, so the Action (§10) and a laptop can hand a sync run back and forth through git alone.
+
+## 10. GitHub Action (Oct)
+
+A published action (`convergeai/sync-action`) wrapping the CLI for unattended, incremental syncs.
+
+- **Triggers:** `schedule` (e.g. nightly) and `workflow_dispatch` (manual, with optional target ref input).
+- **Flow per run:** checkout fork → fetch upstream → `converge plan` → `converge run --units <budget>` sized to the job time budget → commit resolutions + ledger to the sync branch → open or update **one sync PR per sync run** (`convergeai/sync-<run-id>` branch). The PR body carries `converge status` output; review summaries for conflicted units are posted as PR comments; the committed ledger diff is the audit trail.
+- **Incremental by construction:** each scheduled run resumes from the ledger committed on the sync branch (§5.2 — the ledger, not the session file, is the source of truth), so a large upstream release completes across as many nightly runs as it needs.
+- **Permissions:** `contents: write`, `pull-requests: write`. **Secrets:** repo/org secrets with the same names as `.env.example` (`ANTHROPIC_API_KEY`; `JIRA_*` optional — tools fail soft without them, §4.3).
+- **Guardrails:** the Action never merges the sync PR — a human does; job timeout mid-unit is safe (§12); concurrency group prevents overlapping runs on the same sync branch.
+- Marketplace packaging is deferred until after the Nov launch; until then, users reference the action by repo path.
+
+## 11. Blast-radius analysis (Dec)
+
+The answer to conflicts git never reports: upstream changes an API signature cleanly, but fork-only call sites — files upstream doesn't know exist — silently break. AST-based (`ast-grep` / tree-sitter) because mid-rebase code doesn't compile, so a language server can't boot; structural matching works on broken trees. Language scope v1: JS/TS + Python (matching the benchmark fixtures).
+
+Two integration points:
+
+1. **Pre-resolution context:** at plan time, diff each unit's upstream changes for exported-symbol signature changes (function/method arity, name, parameter renames); query the fork for call sites of changed symbols *outside* the unit's conflicted files; attach the call-site report to the unit's prompt under a `[BLAST_RADIUS]` anchor so the agent fixes callers in the same unit.
+2. **Post-resolution warning gate:** after gates pass, re-run the call-site query; a changed signature with untouched call sites raises a **warning** (not a failure, in v1 — dynamic-dispatch false positives are expected, §12) that lands in the review summary and PR comment.
+
+Signature extraction and call-site queries are per-language rule packs in `blast_radius/rules/<lang>/` — the extension point for community language support.
+
+---
+
+## 12. Failure modes & open questions
 
 - **Manifest drift** — patches evolve but nobody updates YAML. Mitigations: `convergeai init --refresh` re-diff proposing manifest updates; constraint-gate failures referencing retired patches flag staleness. Open: should CI warn when a commit touches manifest-matched paths without a manifest change?
 - **Upstream force-pushes / history rewrites** — ledger SHAs go stale. v1 detects (SHA no longer reachable) and requires a new sync run; smarter remapping is out of scope.
 - **Secrets** — unchanged from today: `.env` at repo root, never in fork state. Manifest/ledger must never contain tokens; `record_resolution` sanitizes notes.
 - **When does distillation still pay?** — empirical, per-agent; answered by the §8 matrix rather than by assumption.
+- **Action job timeout mid-unit** — safe by design: checkpoints are per-unit (§5.2), so a killed job loses at most the in-flight unit, and the next scheduled run resumes from the committed ledger.
+- **Blast-radius false positives** — dynamic dispatch, reflection, and string-based imports evade AST call-site queries; this is why §11's post-resolution check warns rather than fails in v1.
 - **Monorepo forks with multiple upstreams** — out of scope for v1 (`schema_version` gives us room).
 
-## 10. Phase 1 exit criteria (Aug 2026)
+## 13. Phase map & exit criteria
+
+Every component's home phase (mirrors the [README roadmap](../README.md#roadmap)):
+
+| Doc section | Component | Roadmap phase |
+|-------------|-----------|---------------|
+| §3 | Fork state model (schemas frozen) | Aug 2026 — Phase 1 |
+| §4 | Fork-state MCP server | Aug 2026 — Phase 1 |
+| §6.2 | Claude Code adapter proof | Aug 2026 — Phase 1 |
+| §5 | Work decomposition | Sep 2026 — Phase 1 |
+| §7 | Validation gates | Sep 2026 — Phase 1 |
+| §8 | Eval matrix, published | Sep 2026 — Phase 1 |
+| §9 | CLI + packaging | Sep–Oct 2026 — Phase 2 |
+| §10 | GitHub Action | Oct 2026 — Phase 2 |
+| §11 | Blast-radius analysis | Dec 2026 — Phase 3 |
+
+### Phase 1 exit criteria (Aug 2026)
 
 1. `manifest.yaml` and `ledger.yaml` schemas frozen at `schema_version: 1` (this doc §3).
 2. Fork-state MCP server exposes `get_internal_context`, `fetch_upstream_context`, `get_sync_status`, `record_resolution`; `distill_context` unchanged and passing existing demo flows.
