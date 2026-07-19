@@ -1,8 +1,8 @@
 # ConvergeAI
 
-**An autonomous AI engine that eliminates rebase hell for enterprise fork maintainers.**
+**An open framework that organizes fork maintenance — bring your own AI agent.**
 
-ConvergeAI is a semantic fork-sync engine that uses AI coding agents to resolve merge conflicts between upstream open-source projects and internal enterprise forks. Instead of brute-force textual merging, it understands *why* code changed upstream and *what* business rules the fork must preserve — then synthesizes a resolution that satisfies both.
+ConvergeAI structures the work of keeping a long-lived fork in sync with upstream. Modern coding agents (Claude Code, Goose, Cursor) are already good at reading an upstream PR and inferring *why* the code changed — so ConvergeAI doesn't try to out-think them. Instead, it provides everything the agent can't do on its own: a persistent record of your internal patches and why they're load-bearing, decomposition of an upstream release into resumable rebase units, retrieval of internal context the agent can't see (ticket rationale, constraints), and validation gates on every resolution.
 
 ---
 
@@ -16,12 +16,13 @@ Enterprise teams maintaining custom forks of open-source projects face a recurri
 
 ## The Solution
 
-ConvergeAI acts as an autonomous maintainer that:
+The division of labor is deliberate: **the agent does the merging; ConvergeAI organizes the work.** Intent analysis is a commoditizing capability — every model generation gets better at it. What doesn't commoditize is the scaffolding around a multi-hundred-commit rebase. ConvergeAI provides five pieces:
 
-1. **Understands both sides** — fetches upstream PR intent *and* internal ticket constraints
-2. **Resolves semantically** — blends new upstream architecture with required business rules
-3. **Validates automatically** — runs compilers and test suites, self-correcting on failure
-4. **Handles blast radius** *(planned)* — traces API signature changes across the entire codebase
+1. **Fork state model** *(planned)* — a versioned manifest of internal patches (what, why, owner, load-bearing constraints) plus an upstream sync ledger tracking which commits are processed, pending, or conflicted
+2. **Work decomposition** *(planned)* — splits an upstream release into ordered, resumable rebase units with checkpoints, so a 300-commit rebase survives interruption
+3. **Agent interface** *(today, evolving)* — hands each conflict to the agent of your choice with the context it can't infer: internal ticket constraints and patch rationale, exposed as MCP tools
+4. **Validation gates** *(today: compile/test loop; planned: review queue)* — runs compilers and test suites with self-correction on failure, and routes risky merges to a human-review queue with blast-radius reporting
+5. **Eval harness** *(today)* — a benchmark suite of real conflict fixtures with a grading pipeline, used to measure resolution quality across agents
 
 ---
 
@@ -30,19 +31,21 @@ ConvergeAI acts as an autonomous maintainer that:
 ```
 ┌─────────────────────────────────────────────────────┐
 │                 Integration Layer                    │
-│   CLI (today) · GitHub Action · VS Code (planned)    │
+│      CLI (today) · GitHub Action (planned)           │
 ├─────────────────────────────────────────────────────┤
-│               Orchestration Engine                   │
-│    Currently Goose — designed to be engine-agnostic  │
+│           Fork State & Work Decomposition            │
+│   patch manifest · upstream sync ledger · resumable  │
+│              rebase units [planned]                  │
 ├─────────────────────────────────────────────────────┤
-│            Context Distiller MCP Server              │
-│     (fetches upstream PR intent & internal           │
-│      constraints, LLM-distills into guidance)        │
+│           Fork-State MCP Server (today:              │
+│    Context Distiller — fetches upstream PR intent    │
+│      & internal constraints for the agent)           │
 ├─────────────────────────────────────────────────────┤
-│             Conflict Resolution Agent                │
+│         Your Agent (Claude Code · Goose · …)         │
 │         (semantic merge + self-correction)           │
 ├─────────────────────────────────────────────────────┤
-│            Validation Loop (compile/test)            │
+│    Validation Gates (compile/test today · review     │
+│              queue planned)                          │
 ├─────────────────────────────────────────────────────┤
 │        Blast Radius Analysis (ast-grep) [planned]    │
 └─────────────────────────────────────────────────────┘
@@ -50,15 +53,17 @@ ConvergeAI acts as an autonomous maintainer that:
 
 ### Key Design Decisions
 
-- **Engine-agnostic design, currently powered by Goose** — Today we compose [Goose](https://github.com/block/goose) via a CLI wrapper, leveraging its native `bash` and file-editing tools. The architecture is designed to be engine-agnostic — the MCP-based context distiller and conflict resolution logic are decoupled from the orchestration engine, so swapping in a different agent runtime requires only a new adapter.
+- **Bring your own agent** — Today we compose [Goose](https://github.com/block/goose) via a CLI wrapper, but the framework's state and context live behind MCP, which every major coding agent speaks. The roadmap's first milestone is proving the same flow end-to-end with Claude Code; the orchestration engine is an adapter, not the product.
 
-- **Context Distiller MCP (LLM-in-the-Middle)** — A single `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira, then uses a fast LLM (`claude-haiku-4-5-20251001` by default, configurable via `DISTILL_MODEL`) to produce structured plaintext guidance with semantic anchors (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). This prevents token exhaustion and hallucinations by feeding the agent only what it needs.
+- **Framework state over prompt engineering** — The durable value is what the agent *can't* rediscover on each run: which internal patches exist and why, which upstream commits have been processed, where the last rebase session left off. This state is versioned and exposed to the agent as MCP tools.
+
+- **Context retrieval, optional distillation** — The current `distill_context` MCP tool fetches upstream PR metadata from GitHub and internal constraints from Jira. It can optionally distill them with a fast LLM (`claude-haiku-4-5-20251001` by default, configurable via `DISTILL_MODEL`) into structured guidance (`[INTENT]`, `[MANDATORY_CONSTRAINTS]`, `[CONFLICT_GUIDANCE]`, `[RISK_ASSESSMENT]`, `[RECOMMENDED_STRATEGY]`). As agents get better at raw intent analysis, the retrieval stays essential — the agent can't infer context it can't see — while the distillation step becomes optional.
 
 - **AST-first code navigation** *(planned)* — Tree-sitter / `ast-grep` for structural, context-aware search-and-replace. This will handle repository-wide API signature changes without booting a language server on broken mid-rebase code.
 
 ---
 
-## How It Works
+## How It Works (current flow)
 
 ```
    ./converge.sh "<prompt>"
@@ -173,14 +178,16 @@ convergeai/
 
 ## Roadmap
 
+**Status as of July 2026.** Shipped so far: the Context Distiller MCP server, one-command setup and CLI, a working demo, and a benchmark framework with 10 JS conflict fixtures and a grading pipeline. This roadmap resets the previous (Apr–Sep 2026) plan around a repositioning: agents are already good at intent analysis and getting better, so bespoke distillation is not where the durable value is — the workflow scaffolding around fork maintenance is. Two deliberate cuts from the old plan: the VS Code extension (meet users where agents already run — MCP registry, GitHub Action, CLI — before building UI surfaces) and the Linear integration (deferred until a design partner asks for it).
+
 | Date | Phase | Milestone |
 |------|-------|-----------|
-| Apr 2026 | Phase 1 | 8-10 benchmark fixtures + published results |
-| May 2026 | Phase 2 | MCP registry listing + GitHub Action beta |
-| Jun 2026 | Phase 2 | VS Code extension + Cursor/Claude Code examples |
-| Jul 2026 | Phase 3 | HN launch + community seeding · Linear + GitLab integrations live |
-| Aug 2026 | Phase 3 | Blast radius analysis (ast-grep) shipped · 3+ enterprise design partners onboarded |
-| Sep 2026 | Phase 4 | Paid tier launched or acquisition conversations started · 50+ WAU, revenue or LOI |
+| Aug 2026 | Phase 1 — Re-architecture | Design doc + fork-manifest & sync-ledger formats · Refactor MCP server: context distiller → fork-state server (manifest, ledger, constraints as tools) · Prove end-to-end with Claude Code as the agent on existing fixtures |
+| Sep 2026 | Phase 1 — Framework MVP | Work decomposition + resumable rebase sessions + validation gates · Benchmark suite runs the framework with 2+ agents (Claude Code, Goose) · Published comparison results |
+| Oct 2026 | Phase 2 — Distribution | v0.1 release + pipx/Homebrew packaging · MCP registry listing · GitHub Action beta (scheduled upstream-sync job that opens resolved PRs) |
+| Nov 2026 | Phase 2 — Launch | Show HN backed by benchmark data + one real OSS-fork case study · Fast issue triage · v0.2 from launch feedback |
+| Dec 2026 | Phase 3 — Depth & partners | Blast-radius analysis MVP (ast-grep) · GitLab support · 2–3 design partners with real fork pain running pilots · Success metrics instrumented (auto-resolve rate, human-review rate) |
+| Jan 2027 | Phase 4 — Decide | 50+ WAU · Paid tier vs. open-core decision driven by pilot data · Roadmap v3 |
 
 ---
 
