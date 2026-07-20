@@ -182,7 +182,7 @@ An evolution of the existing Context Distiller ([mcp/context_distiller/server.py
 | `get_internal_context(conflicted_files, ticket_ids?)` | pure retrieval | Match conflicted paths against `manifest.yaml` `touches.files` globs; return the relevant patches — rationale, constraints, owner, tickets — formatted under the existing `[MANDATORY_CONSTRAINTS]` anchor. Optional `ticket_ids` adds explicit Jira tickets to the result (and is the sole constraint source in manifest-less fallback, §4.3). No LLM call. |
 | `fetch_upstream_context(repo, pr_number \| commit_sha)` | pure retrieval | Raw PR / commit / linked-ticket metadata via the existing GitHub/Jira clients. No LLM call; the agent does its own intent analysis. |
 | `get_sync_status()` | ledger read | Current sync run, last synced SHA, pending/conflicted commit counts, active session if any. |
-| `record_resolution(sha, strategy, patches, notes)` | ledger write | Append the outcome of a resolution to `ledger.yaml`. The framework CLI also calls this; exposing it as a tool lets the agent self-report in supervised flows. |
+| *(ledger writes)* | framework-internal | Not an MCP tool. The ledger has exactly one writer: the framework CLI appends to `ledger.yaml` once per unit, after the §7 gate pipeline concludes (pass or fail). The agent never mutates the ledger — it reports its strategy in its final message (§6.1), which the adapter parses; recording before gates run could persist an outcome that validation then rejects. |
 | `distill_context(...)` | optional LLM | Unchanged from today (Haiku-backed synthesis with semantic anchors). Kept for backward compatibility and for weaker agents; expected to become opt-in. |
 
 ### 4.2 Why this decomposition
@@ -211,7 +211,7 @@ Input: the upstream commit range for a sync run (`last_synced_sha..target_sha`).
 
 - After each unit passes validation gates: resolutions are committed, `ledger.yaml` is updated and committed, and the session file snapshots position. An interruption loses at most one unit of work.
 - `converge resume` continues from the last checkpoint; with the session file missing, position is reconstructed from the ledger (last `processed` sha) plus `git status`. The session file is convenience, never the source of truth.
-- A unit that exhausts its attempt budget is marked `conflicted` in the ledger; the run continues with the next unit unless the failed unit's files overlap a later unit (then the run pauses for review, since continuing would compound a bad base).
+- A unit that exhausts its attempt budget is marked `conflicted` and **the run pauses**. Git's sequencer is blocked at the failed patch anyway — proceeding would require `git rebase --skip`, which silently drops the upstream change from the base that every later unit builds on, and no file-overlap heuristic makes that safe (later commits can depend on APIs or imports from the skipped change without touching the same files). The human exits the pause one of two ways: resolve the unit manually and `converge resume`, or explicitly `converge skip <unit> --reason "..."` — a deliberate, ledger-recorded decision (`status: skipped`) that this upstream change is not wanted in the fork.
 
 ## 6. Agent interface (Phase 1 proof: Aug · full adapters: Sep)
 
@@ -238,14 +238,17 @@ You have {attempts_remaining} attempts. On failure you will receive the
 gate output and should revise.
 
 [REPORTING]
-When done, call record_resolution(sha, strategy, patches, notes).
+End your final message with one line:
+RESOLUTION: strategy=<BLEND|ACCEPT_UPSTREAM|KEEP_OURS|MANUAL_REVIEW> patches=<ids> notes=<one sentence>
+Do not modify .convergeai/ yourself; the framework records outcomes
+after validation.
 ```
 
 The agent owns intent analysis, resolution, and iteration. Nothing in the contract is engine-specific; the anchors reuse the vocabulary agents already see from `distill_context`.
 
 ### 6.2 Adapter contract
 
-An adapter is a small shim responsible for exactly four things: (1) register the fork-state MCP server with the engine, (2) submit the prompt, (3) surface the engine's transcript to the session log, (4) map engine exit to `resolved | failed | timeout`. Adapters live in `adapters/<engine>/` and are selected by `--agent` or `CONVERGEAI_AGENT`.
+An adapter is a small shim responsible for exactly four things: (1) register the fork-state MCP server with the engine, (2) submit the prompt, (3) surface the engine's transcript to the session log, (4) map engine exit to `resolved | failed | timeout` and parse the `RESOLUTION:` line from the final message (§6.1) for the framework to record after gates conclude. Adapters live in `adapters/<engine>/` and are selected by `--agent` or `CONVERGEAI_AGENT`.
 
 - **Goose (today):** [converge.sh](../converge.sh) + [goose/ai-maintainer.yaml](../goose/ai-maintainer.yaml), refactored into `adapters/goose/` with unchanged behavior.
 - **Claude Code (Phase 1 proof):** headless `claude -p "<prompt>" --mcp-config adapters/claude-code/mcp.json --permission-mode acceptEdits`, working directory = the rebase checkout. The **Phase 1 exit test** is Claude Code resolving an existing benchmark fixture end-to-end using `get_internal_context` (manifest-backed) instead of `distill_context`.
@@ -295,6 +298,7 @@ One binary, `converge`, installed by pipx/Homebrew (Oct). Today's [converge.sh](
 | `converge resume [<session-id>]` | Continue from the last checkpoint; reconstructs position from the ledger if the session file is gone (§5.2). |
 | `converge status` | Ledger + session summary: current run, processed/pending/conflicted counts, last synced SHA. |
 | `converge review` | List `conflicted` entries with their generated summaries; `--open` jumps to the sync PR comment. |
+| `converge skip <unit> --reason "..."` | Explicitly drop a paused unit's upstream commits from the sync (`git rebase --skip`), record `status: skipped` with the reason in the ledger, and unpause the run (§5.2). |
 
 Global: `--agent goose\|claude-code` (or `CONVERGEAI_AGENT`) selects the adapter (§6.2); `--repo-root` defaults to cwd; `--ticket <id>` (repeatable) forwards Jira ticket keys into `get_internal_context` — the constraint source for manifest-less forks (§4.3). Exit codes: `0` all units clean, `1` completed with `conflicted` entries remaining, `2` framework error. Everything the CLI knows it reads from `.convergeai/` + `.git/convergeai/` — no hidden state, so the Action (§10) and a laptop can hand a sync run back and forth through git alone.
 
@@ -306,7 +310,7 @@ A published action (`convergeai/sync-action`) wrapping the CLI for unattended, i
 - **Flow per run:** checkout fork → fetch upstream → `converge plan` → `converge run --units <budget>` sized to the job time budget → commit resolutions + ledger to the sync branch → open or update **one sync PR per sync run** (`convergeai/sync-<run-id>` branch). The PR body carries `converge status` output; review summaries for conflicted units are posted as PR comments; the committed ledger diff is the audit trail.
 - **Incremental by construction:** each scheduled run resumes from the ledger committed on the sync branch (§5.2 — the ledger, not the session file, is the source of truth), so a large upstream release completes across as many nightly runs as it needs.
 - **Permissions:** `contents: write`, `pull-requests: write`. **Secrets:** repo/org secrets with the same names as `.env.example` (`ANTHROPIC_API_KEY`; `JIRA_*` optional — tools fail soft without them, §4.3).
-- **Guardrails:** the Action never merges the sync PR — a human does; job timeout mid-unit is safe (§12); concurrency group prevents overlapping runs on the same sync branch.
+- **Guardrails:** the Action never merges the sync PR — a human does; job timeout mid-unit is safe (§12); concurrency group prevents overlapping runs on the same sync branch. When a run is paused on a `conflicted` unit (§5.2), subsequent scheduled runs refresh the PR summary and exit without invoking the agent — the pause is a human gate, and only `converge resume`/`converge skip` (locally or via `workflow_dispatch` input) clears it.
 - Marketplace packaging is deferred until after the Nov launch; until then, users reference the action by repo path.
 
 ## 11. Blast-radius analysis (Dec)
@@ -326,7 +330,7 @@ Signature extraction and call-site queries are per-language rule packs in `blast
 
 - **Manifest drift** — patches evolve but nobody updates YAML. Mitigations: `convergeai init --refresh` re-diff proposing manifest updates; constraint-gate failures referencing retired patches flag staleness. Open: should CI warn when a commit touches manifest-matched paths without a manifest change?
 - **Upstream force-pushes / history rewrites** — ledger SHAs go stale. v1 detects (SHA no longer reachable) and requires a new sync run; smarter remapping is out of scope.
-- **Secrets** — unchanged from today: `.env` at repo root, never in fork state. Manifest/ledger must never contain tokens; `record_resolution` sanitizes notes.
+- **Secrets** — unchanged from today: `.env` at repo root, never in fork state. Manifest/ledger must never contain tokens; the framework sanitizes agent-reported notes before writing them to the ledger.
 - **When does distillation still pay?** — empirical, per-agent; answered by the §8 matrix rather than by assumption.
 - **Action job timeout mid-unit** — safe by design: checkpoints are per-unit (§5.2), so a killed job loses at most the in-flight unit, and the next scheduled run resumes from the committed ledger.
 - **Blast-radius false positives** — dynamic dispatch, reflection, and string-based imports evade AST call-site queries; this is why §11's post-resolution check warns rather than fails in v1.
@@ -351,6 +355,6 @@ Every component's home phase (mirrors the [README roadmap](../README.md#roadmap)
 ### Phase 1 exit criteria (Aug 2026)
 
 1. `manifest.yaml` and `ledger.yaml` schemas frozen at `schema_version: 1` (this doc §3).
-2. Fork-state MCP server exposes `get_internal_context`, `fetch_upstream_context`, `get_sync_status`, `record_resolution`; `distill_context` unchanged and passing existing demo flows.
+2. Fork-state MCP server exposes `get_internal_context`, `fetch_upstream_context`, `get_sync_status`; `distill_context` unchanged and passing existing demo flows.
 3. One benchmark fixture resolved end-to-end by **Claude Code** using manifest-backed context, gates passing.
 4. Benchmark harness can run that flow repeatably (foundation for the Sep matrix).
