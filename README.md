@@ -24,6 +24,8 @@ The division of labor is deliberate: **the agent does the merging; ConvergeAI or
 4. **Validation gates** *(today: compile/test loop; planned: review queue)* — runs compilers and test suites with self-correction on failure, and routes risky merges to a human-review queue with blast-radius reporting
 5. **Eval harness** *(today)* — a benchmark suite of real conflict fixtures with a grading pipeline, used to measure resolution quality across agents
 
+Full architecture, state schemas, and phase-1 specs: [docs/DESIGN.md](docs/DESIGN.md).
+
 ---
 
 ## Architecture
@@ -182,7 +184,7 @@ convergeai/
 
 | Date | Phase | Milestone |
 |------|-------|-----------|
-| Aug 2026 | Phase 1 — Re-architecture | Design doc + fork-manifest & sync-ledger formats · Refactor MCP server: context distiller → fork-state server (manifest, ledger, constraints as tools) · Prove end-to-end with Claude Code as the agent on existing fixtures |
+| Aug 2026 | Phase 1 — Re-architecture | [Design doc](docs/DESIGN.md) + fork-manifest & sync-ledger formats · Refactor MCP server: context distiller → fork-state server (manifest, ledger, constraints as tools) · Prove end-to-end with Claude Code as the agent on existing fixtures |
 | Sep 2026 | Phase 1 — Framework MVP | Work decomposition + resumable rebase sessions + validation gates · Benchmark suite runs the framework with 2+ agents (Claude Code, Goose) · Published comparison results |
 | Oct 2026 | Phase 2 — Distribution | v0.1 release + pipx/Homebrew packaging · MCP registry listing · GitHub Action beta (scheduled upstream-sync job that opens resolved PRs) |
 | Nov 2026 | Phase 2 — Launch | Show HN backed by benchmark data + one real OSS-fork case study · Fast issue triage · v0.2 from launch feedback |
